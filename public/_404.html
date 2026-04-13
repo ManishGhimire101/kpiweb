@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 | Page Not Found</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #001f5b 0%, #0b3d91 45%, #6fb1fc 100%);
+            color: #0f172a;
+            padding: 20px;
+        }
+
+        .card {
+            width: min(560px, 100%);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(6px);
+            border-radius: 18px;
+            padding: 42px 34px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+            text-align: center;
+        }
+
+        .code {
+            font-size: 72px;
+            font-weight: 800;
+            line-height: 1;
+            color: #001f5b;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            color: #0b3d91;
+        }
+
+        p {
+            color: #334155;
+            margin-bottom: 26px;
+            font-size: 16px;
+        }
+
+        .home-btn {
+            display: inline-block;
+            text-decoration: none;
+            background: #001f5b;
+            color: #ffffff;
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .home-btn:hover {
+            background: #0b3d91;
+            transform: translateY(-2px);
+        }
+
+        .hint {
+            margin-top: 16px;
+            font-size: 13px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <div class="code">404</div>
+        <h1>Page Not Found</h1>
+        <p>Sorry, the page you are looking for does not exist or may have been moved.</p>
+        <a class="home-btn" href="/">Go to Home Page</a>
+        <div class="hint">Check the URL or return to the main page.</div>
+    </main>
+</body>
+</html>

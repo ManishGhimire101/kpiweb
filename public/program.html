@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>program</title>
+    <link rel="stylesheet" href="style.css">
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+  />
+</head>
+<body>
+    <div id="navbar-root"></div>
+
+    <main style="background: linear-gradient(135deg, #f4f7fc 0%, #eaf1ff 100%); padding: 60px 20px;">
+        <!-- Header Section -->
+        <div style="max-width: 1200px; margin: 0 auto 60px; text-align: center;">
+            <h2 style="color: #001f5b; font-size: 28px; margin-bottom: 16px; font-weight: 700;">Our Faculty</h2>
+            <p style="color: #475569; font-size: 16px; max-width: 800px; margin: 0 auto;">Experienced and dedicated departments focused on practical skills and career-ready education.</p>
+        </div>
+
+        <!-- Programs Section (displayed as departments) -->
+        <div id="programsContainer" style="max-width: 1200px; margin: 0 auto 80px;">
+            <div id="programList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 24px;">
+                <p style="text-align: center; color: #7c8ba6;">Loading programs...</p>
+            </div>
+        </div>
+
+        <!-- Courses Section -->
+        <div style="max-width: 1200px; margin: 0 auto; text-align: center; margin-bottom: 40px;">
+            <h2 style="color: #001f5b; font-size: 28px; margin-bottom: 12px; font-weight: 700;">Our Courses</h2>
+            <p style="color: #475569; font-size: 16px; max-width: 800px; margin: 0 auto 40px;">Career-focused technical programs designed for practical knowledge and strong professional foundations.</p>
+        </div>
+
+        <!-- Courses Grid -->
+        <div id="coursesContainer" style="max-width: 1200px; margin: 0 auto;">
+            <div id="coursesList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 24px;">
+                <p style="text-align: center; color: #7c8ba6;">Loading courses...</p>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-root"></div>
+    <script src="/script.js"></script>
+    <script>
+        async function loadPrograms() {
+            const programRoot = document.getElementById('programList');
+            const courseRoot = document.getElementById('coursesList');
+            
+            try {
+                const res = await fetch('/api/program');
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    programRoot.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #7c8ba6;">No programs found. Add programs from Prisma Studio.</p>';
+                    courseRoot.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #7c8ba6;">No courses available.</p>';
+                    return;
+                }
+
+                // Render Programs as Department Cards
+                programRoot.innerHTML = data.map(p => `
+                    <div style="background: white; border-radius: 12px; padding: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.3s ease, box-shadow 0.3s ease;" class="program-card">
+                        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #001f5b 0%, #0b3d91 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px;">
+                                <i class="fas ${p.name.toLowerCase().includes('it') ? 'fa-laptop' : 'fa-helmet-safety'}"></i>
+                            </div>
+                            <h3 style="margin: 0; color: #001f5b; font-size: 22px; font-weight: 700;">${p.name}</h3>
+                        </div>
+                        <p style="color: #475569; line-height: 1.6; margin: 0 0 16px; font-size: 14px;">${p.details || 'Focused on practical education and industry-oriented training.'}</p>
+                        <ul style="list-style: none; padding: 0; margin: 0; color: #0b3d91; font-size: 14px;">
+                            ${(p.courses || []).map(c => `
+                                <li style="padding: 6px 0; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-check" style="color: #16a34a; font-size: 12px;"></i>
+                                    ${c.title}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `).join('');
+
+                // Render Courses as Course Cards
+                let allCourses = [];
+                data.forEach(p => {
+                    (p.courses || []).forEach(c => {
+                        allCourses.push({ ...c, programName: p.name });
+                    });
+                });
+
+                if (allCourses.length === 0) {
+                    courseRoot.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #7c8ba6;">No courses available.</p>';
+                } else {
+                    courseRoot.innerHTML = allCourses.map(c => `
+                        <div style="background: white; border-radius: 12px; padding: 28px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.3s ease, box-shadow 0.3s ease; overflow: hidden;" class="course-card">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                                <span style="background: #dbeafe; color: #001f5b; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">${c.programName.toUpperCase().replace(/[^A-Z]/g, '')}</span>
+                                <span style="background: ${c.isFree ? '#dcfce7' : '#fee2e2'}; color: ${c.isFree ? '#15803d' : '#b91c1c'}; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">${c.isFree ? 'FREE' : 'PAID'}</span>
+                            </div>
+                            <h4 style="color: #001f5b; font-size: 18px; font-weight: 700; margin: 0 0 12px; line-height: 1.4;">${c.title}</h4>
+                            <p style="color: #475569; font-size: 14px; line-height: 1.6; margin: 0;">${c.details || 'Professional course designed for career advancement.'}</p>
+                        </div>
+                    `).join('');
+                }
+
+                // Add hover effects
+                document.querySelectorAll('.program-card').forEach(card => {
+                    card.addEventListener('mouseenter', () => {
+                        card.style.transform = 'translateY(-4px)';
+                        card.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+                    });
+                    card.addEventListener('mouseleave', () => {
+                        card.style.transform = 'translateY(0)';
+                        card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                    });
+                });
+
+                document.querySelectorAll('.course-card').forEach(card => {
+                    card.addEventListener('mouseenter', () => {
+                        card.style.transform = 'translateY(-4px)';
+                        card.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+                    });
+                    card.addEventListener('mouseleave', () => {
+                        card.style.transform = 'translateY(0)';
+                        card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                    });
+                });
+
+            } catch (_) {
+                programRoot.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #dc2626;">Failed to load programs.</p>';
+                courseRoot.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #dc2626;">Failed to load courses.</p>';
+            }
+        }
+
+        loadPrograms();
+        loadComponent('navbar-root', '/component/nav.html');
+        loadComponent('footer-root', '/component/footer.html');
+    </script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Us - Kankai Polytechnic Institute</title>
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+  <style>
+    .about-hero {
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+      color: white;
+      padding: 50px 20px;
+      text-align: center;
+    }
+
+    .about-hero h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      margin-bottom: 16px;
+    }
+
+    .about-hero p {
+      font-size: 1.1rem;
+      max-width: 700px;
+      margin: 0 auto;
+      line-height: 1.7;
+      opacity: 0.95;
+    }
+
+    .about-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .about-section {
+      padding: 60px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .about-section:last-child {
+      border-bottom: none;
+    }
+
+    .about-section h2 {
+      color: #001f5b;
+      font-size: 2rem;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .about-section h2 i {
+      color: #2563eb;
+    }
+
+    .about-section p {
+      color: #4b5b79;
+      line-height: 1.8;
+      margin-bottom: 12px;
+      font-size: 1.05rem;
+    }
+
+    .highlight-box {
+      background: #f0f6ff;
+      border-left: 4px solid #2563eb;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+
+    .highlight-box strong {
+      color: #001f5b;
+    }
+
+    .three-column {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 30px;
+    }
+
+    .info-card {
+      background: white;
+      border: 1px solid #d8e4ff;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 31, 91, 0.08);
+    }
+
+    .info-card i {
+      font-size: 2.5rem;
+      color: #2563eb;
+      margin-bottom: 12px;
+    }
+
+    .info-card h3 {
+      color: #001f5b;
+      margin-bottom: 8px;
+    }
+
+    .info-card p {
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .courses-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .course-item {
+      background: #f9fafb;
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: #1f2937;
+      border-left: 3px solid #2563eb;
+    }
+
+    .facilities-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .facility-item {
+      text-align: center;
+      padding: 16px;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+
+    .facility-item i {
+      font-size: 2rem;
+      color: #2563eb;
+      margin-bottom: 8px;
+    }
+
+    .facility-item p {
+      margin: 0;
+      color: #4b5b79;
+      font-weight: 600;
+    }
+
+    .map-section {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 31, 91, 0.12);
+      margin-top: 30px;
+    }
+
+    .map-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    @media (max-width: 768px) {
+      .three-column {
+        grid-template-columns: 1fr;
+      }
+
+      .courses-list {
+        grid-template-columns: 1fr;
+      }
+
+      .facilities-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .about-section {
+        padding: 40px 0;
+      }
+
+      .about-section h2 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar-root"></div>
+
+  <section class="about-hero">
+    <h1>About Kankai Polytechnic Institute</h1>
+    <p>Leading Technical Education in Jhapa – Established 2019</p>
+  </section>
+
+  <main class="about-container">
+    <!-- Overview Section -->
+    <section class="about-section">
+      <h2><i class="fa-solid fa-building"></i> Overview</h2>
+      <p>Kankai Polytechnic Institute is a premier technical education institution located in Kankai, Jhapa, Nepal. Established in 2019, we are committed to providing quality diploma-level education in information technology, civil engineering, and geomatics engineering. Our institution is dedicated to nurturing skilled professionals who can contribute to national development and excel in the global economy.</p>
+     
+    </section>
+
+    <!-- Mission & Vision Section -->
+    <section class="about-section">
+      <h2><i class="fa-solid fa-bullseye"></i> Mission & Vision</h2>
+      <div class="three-column">
+        <div class="info-card">
+          <i class="fa-solid fa-rocket"></i>
+          <h3>Our Mission</h3>
+          <p>To provide quality technical education that empowers students with practical skills, professional knowledge, and ethical values for career success.</p>
+        </div>
+        <div class="info-card">
+          <i class="fa-solid fa-star"></i>
+          <h3>Our Vision</h3>
+          <p>To be a leading polytechnic institution recognized for excellence in technical education and innovation in Nepal and South Asia.</p>
+        </div>
+        <div class="info-card">
+          <i class="fa-solid fa-compass"></i>
+          <h3>Our Values</h3>
+          <p>Excellence, Integrity, Innovation, Student-Centered Learning, and Community Engagement.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Courses Section -->
+    <section class="about-section">
+      <h2><i class="fa-solid fa-graduation-cap"></i> Infrastructure & Facilities</h2>
+      <p>Our campus is equipped with modern facilities to support comprehensive learning and student development:</p>
+      <div class="facilities-grid">
+        <div class="facility-item">
+          <i class="fa-solid fa-book"></i>
+          <p>Library</p>
+        </div>
+        <div class="facility-item">
+          <i class="fa-solid fa-flask"></i>
+          <p>Science Lab</p>
+        </div>
+        <div class="facility-item">
+          <i class="fa-solid fa-wifi"></i>
+          <p>Internet</p>
+        </div>
+        <div class="facility-item">
+          <i class="fa-solid fa-trophy"></i>
+          <p>Sports</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Choose Us Section -->
+    <section class="about-section">
+      <h2><i class="fa-solid fa-heart"></i> Why Choose Kankai Polytechnic?</h2>
+      <ul style="color: #4b5b79; line-height: 2; font-size: 1.05rem;">
+        <li><strong style="color: #001f5b;">Expert Faculty:</strong> Experienced instructors with industry background</li>
+        <li><strong style="color: #001f5b;">Practical Learning:</strong> Hands-on training and real-world projects</li>
+        <li><strong style="color: #001f5b;">Modern Infrastructure:</strong> Well-equipped labs and learning facilities</li>
+        <li><strong style="color: #001f5b;">Career Support:</strong> Placement assistance and industry connections</li>
+        <li><strong style="color: #001f5b;">Affordable Education:</strong> Quality education at reasonable cost</li>
+        <li><strong style="color: #001f5b;">Community Focus:</strong> Building skilled professionals for national development</li>
+      </ul>
+    </section>
+
+    <!-- Location Map Section -->
+    <section class="about-section">
+      <h2><i class="fa-solid fa-map-location-dot"></i> Our Location</h2>
+      <p>Visit us at our campus in Kankai, Jhapa. We are located in Durgapur, making us easily accessible for students and visitors.</p>
+      <div class="map-section">
+       <iframe class="map-iframe" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3798.451974590981!2d87.92455367568172!3d26.6397479768109!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39e5bddb3bce1847%3A0x2ea987af31178f84!2sKankai%20polytechnic%20institute!5e1!3m2!1sen!2snp!4v1775998620505!5m2!1sen!2snp" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </section>
+  </main>
+
+  <div id="footer-root"></div>
+  <script src="/script.js"></script>
+</body>
+</html>

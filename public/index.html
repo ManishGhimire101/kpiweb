@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+   <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+/>
+    <title>Home page</title>
+  </head>
+  <body>
+    <div id="navbar-root"></div>
+
+    <section class="hero-slider" aria-label="College photo slider">
+      <div class="slides">
+        <div class="slide active">
+          <img
+            src="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1600&q=80"
+            alt="College building and campus area"
+          />
+          <div class="slide-content">
+            <h2>Loading highlights...</h2>
+            <p>Please wait while we load latest images from our database.</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="slider-btn prev" type="button" aria-label="Previous slide">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <button class="slider-btn next" type="button" aria-label="Next slide">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+
+      <div class="slider-dots" aria-label="Slider dots">
+        <button class="dot active" type="button" data-index="0" aria-label="Go to slide 1"></button>
+      </div>
+    </section>
+
+    <section class="faculty-section" id="faculty">
+      <div class="faculty-container">
+        <div class="faculty-heading">
+          <h2>Our Faculty</h2>
+          <p>Experienced and dedicated departments focused on practical skills and career-ready education.</p>
+        </div>
+
+        <div class="faculty-grid" id="facultyGrid">
+          <p style="text-align: center; color: #7c8ba6;">Loading faculty...</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="courses-section" id="courses">
+      <div class="courses-container">
+        <div class="courses-heading">
+          <h2>Our Courses</h2>
+          <p>Career-focused technical programs designed for practical knowledge and strong professional foundations.</p>
+        </div>
+
+        <div class="courses-grid" id="coursesGrid">
+          <p style="text-align: center; color: #7c8ba6;">Loading courses...</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="gallery-section" id="gallery">
+      <div class="gallery-container">
+        <div class="gallery-heading">
+          <h2>Gallery</h2>
+          <p>Explore moments and highlights from our campus, events, and academic activities.</p>
+        </div>
+
+        <div class="gallery-grid" id="homeGalleryGrid">
+          <p style="text-align: center; color: #7c8ba6;">Loading gallery...</p>
+        </div>
+      </div>
+    </section>
+
+    <div id="footer-root"></div>
+
+    <script src="/script.js"></script>
+    <script>
+      // Load Faculty from Program API
+      async function loadFaculty() {
+        try {
+          const res = await fetch('/api/program');
+          if (!res.ok) throw new Error();
+          const programs = await res.json();
+
+          if (!Array.isArray(programs) || programs.length === 0) {
+            document.getElementById('facultyGrid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #7c8ba6;">No faculties found.</p>';
+            return;
+          }
+
+          const facultyGrid = document.getElementById('facultyGrid');
+          facultyGrid.innerHTML = programs.map(p => {
+            const icon = p.name.toLowerCase().includes('it') ? 'fa-laptop-code' : 'fa-helmet-safety';
+            const courseList = (p.courses || []).map(c => `<li>${c.title}</li>`).join('');
+            return `
+              <article class="faculty-card">
+                <div class="faculty-icon"><i class="fa-solid ${icon}"></i></div>
+                <h3>${p.name}</h3>
+                <p>${p.details || 'Focused on practical education and industry-oriented training.'}</p>
+                <ul>${courseList || '<li>Professional education programs</li>'}</ul>
+              </article>
+            `;
+          }).join('');
+        } catch (_) {
+          document.getElementById('facultyGrid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #dc2626;">Failed to load faculties.</p>';
+        }
+      }
+
+      // Load Courses from Program API
+      async function loadCourses() {
+        try {
+          const res = await fetch('/api/program');
+          if (!res.ok) throw new Error();
+          const programs = await res.json();
+
+          if (!Array.isArray(programs) || programs.length === 0) {
+            document.getElementById('coursesGrid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #7c8ba6;">No courses found.</p>';
+            return;
+          }
+
+          // Render Courses
+          const courseGrid = document.getElementById('coursesGrid');
+          let allCourses = [];
+          programs.forEach(p => {
+            (p.courses || []).forEach(c => {
+              allCourses.push({ ...c, programName: p.name });
+            });
+          });
+
+          if (allCourses.length === 0) {
+            courseGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #7c8ba6;">No courses available.</p>';
+          } else {
+            courseGrid.innerHTML = allCourses.map(c => `
+              <article class="course-card">
+                <span class="course-tag">${c.programName.toUpperCase().replace(/[^A-Z]/g, '')} Stream</span>
+                <h3>
+                  ${c.title}
+                  ${c.isFree ? '<span class="free-tag">FREE</span>' : ''}
+                </h3>
+                <p>${c.details || 'Professional course designed for career advancement.'}</p>
+              </article>
+            `).join('');
+          }
+        } catch (_) {
+          document.getElementById('coursesGrid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #dc2626;">Failed to load courses.</p>';
+        }
+      }
+
+      // Initialize
+      loadFaculty();
+      loadCourses();
+      loadHomeGallery();
+
+      // Load Gallery from Upload API
+      async function loadHomeGallery() {
+        try {
+          const res = await fetch('/api/admin/upload/gallary');
+          if (!res.ok) throw new Error();
+          const items = await res.json();
+
+          if (!Array.isArray(items) || items.length === 0) {
+            document.getElementById('homeGalleryGrid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #7c8ba6;">No gallery items found.</p>';
+            return;
+          }
+
+          const galleryGrid = document.getElementById('homeGalleryGrid');
+          galleryGrid.innerHTML = items.map(item => `
+            <article class="gallery-card">
+              <img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title || 'Gallery image')}" class="gallery-image" />
+              <div class="gallery-content">
+                <h3>${escapeHtml(item.title || 'Gallery Item')}</h3>
+              </div>
+            </article>
+          `).join('');
+        } catch (_) {
+          document.getElementById('homeGalleryGrid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #dc2626;">Failed to load gallery.</p>';
+        }
+      }
+    </script>
+  </body>
+</html>
