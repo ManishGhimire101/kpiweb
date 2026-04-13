@@ -1,0 +1,7 @@
+{
+  "buildCommand": "npm install && prisma generate",
+  "outputDirectory": ".",
+  "env": {
+    "DATABASE_URL": "@DATABASE_URL"
+  }
+}
