@@ -1,56 +1,59 @@
-const express = require('express');
+const express = require("express");
+const { PrismaClient } = require("@prisma/client");
+
 const router = express.Router();
-const PrismaClient = require('@prisma/client').PrismaClient;
 const prisma = new PrismaClient();
 
-//get programs with cources
-router.get('/',async (req,res) =>{
-    try{
-        const programs = await prisma.program.findMany({
-            orderBy: {createdAt:'asc'},
-            include : {
-                courses:{orderBy:{createdAt:'asc'}}
-            }
-        });
-    res.json(programs);
-    }catch{
-    res.status(500).json({message:'failed to fetch programs'});
-    }
-});
-// CREATE program
-router.post('/', async (req, res) => {
+// GET all programs with courses
+router.get("/", async (req, res) => {
   try {
-    const { name, details } = req.body;
-    if (!name) return res.status(400).json({ message: 'name is required' });
-
-    const created = await prisma.program.create({
-      data: { name, details: details || null }
+    const programs = await prisma.program.findMany({
+      orderBy: { createdAt: "asc" },
+      include: {
+        courses: { orderBy: { createdAt: "asc" } },
+      },
     });
-    res.status(201).json(created);
-  } catch {
-    res.status(500).json({ message: 'Failed to create program' });
+    res.json(programs);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch programs" });
   }
 });
-// CREATE course under a program
-router.post('/:programId/courses', async (req, res) => {
+
+// POST create new program
+router.post("/", async (req, res) => {
+  try {
+    const { name, details } = req.body;
+    if (!name) return res.status(400).json({ message: "Name is required" });
+
+    const created = await prisma.program.create({
+      data: { name, details: details || null },
+    });
+    res.status(201).json(created);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to create program" });
+  }
+});
+
+// POST create course under a program
+router.post("/:programId/courses", async (req, res) => {
   try {
     const programId = Number(req.params.programId);
     const { title, details, isFree } = req.body;
 
-    if (!title) return res.status(400).json({ message: 'title is required' });
+    if (!title) return res.status(400).json({ message: "Title is required" });
 
     const created = await prisma.course.create({
       data: {
         title,
         details: details || null,
         isFree: Boolean(isFree),
-        programId
-      }
+        programId,
+      },
     });
 
     res.status(201).json(created);
-  } catch {
-    res.status(500).json({ message: 'Failed to create course' });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to create course" });
   }
 });
 
