@@ -245,7 +245,9 @@
 
         // Temporary dashboard location
         setTimeout(() => {
-    window.location.href = "/super_admin";
+    window.location.href = data.user.mustChangePassword
+      ? "/superadmin/change-password"
+      : "/super_admin";
 }, 800);
      
       } catch (error) {

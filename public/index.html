@@ -8,7 +8,7 @@
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
 />
-    <title>Home page</title>
+    <title>Home</title>
   </head>
   <body>
     <div id="navbar-root"></div>
@@ -82,7 +82,7 @@
 
     <script src="/script.js"></script>
     <script>
-      // Load Faculty from Program API
+
       async function loadFaculty() {
         try {
           const res = await fetch('/api/program');
@@ -112,7 +112,6 @@
         }
       }
 
-      // Load Courses from Program API
       async function loadCourses() {
         try {
           const res = await fetch('/api/program');
@@ -124,7 +123,6 @@
             return;
           }
 
-          // Render Courses
           const courseGrid = document.getElementById('coursesGrid');
           let allCourses = [];
           programs.forEach(p => {
@@ -152,12 +150,10 @@
         }
       }
 
-      // Initialize
       loadFaculty();
       loadCourses();
       loadHomeGallery();
 
-      // Load Gallery from Upload API
       async function loadHomeGallery() {
         try {
           const res = await fetch('/api/admin/upload/gallary');
@@ -182,6 +178,6 @@
           document.getElementById('homeGalleryGrid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #dc2626;">Failed to load gallery.</p>';
         }
       }
-    </script>
+</script>
   </body>
 </html>

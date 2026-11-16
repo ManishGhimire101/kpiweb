@@ -39,18 +39,24 @@ function getAdminUser() {
 }
 
 
+function clearAdminSession() {
+
+    [
+        ADMIN_TOKEN_KEY,
+        ADMIN_USER_KEY,
+        "portalToken",
+        "portalUser"
+    ].forEach((key) => localStorage.removeItem(key));
+
+}
+
+
 function adminLogout() {
 
-    localStorage.removeItem(
-        ADMIN_TOKEN_KEY
-    );
-
-    localStorage.removeItem(
-        ADMIN_USER_KEY
-    );
+    clearAdminSession();
 
     window.location.href =
-        "/admin/login";
+        "/login";
 
 }
 
@@ -64,27 +70,12 @@ function requireAdminLogin() {
         getAdminUser();
 
 
-    if (!token || !user) {
+    if (!token || !user || user.role !== "ADMIN") {
+
+        clearAdminSession();
 
         window.location.href =
-            "/admin/login";
-
-        return false;
-    }
-
-
-    if (user.role !== "ADMIN") {
-
-        localStorage.removeItem(
-            ADMIN_TOKEN_KEY
-        );
-
-        localStorage.removeItem(
-            ADMIN_USER_KEY
-        );
-
-        window.location.href =
-            "/admin/login";
+            "/login";
 
         return false;
     }

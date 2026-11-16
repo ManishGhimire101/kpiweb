@@ -1,4 +1,4 @@
-// load navbar 
+
 async function loadComponent(targetId, url) {
   const root = document.getElementById(targetId);
   if (!root) return;
@@ -8,12 +8,143 @@ async function loadComponent(targetId, url) {
     if (!res.ok) return;
     root.innerHTML = await res.text();
   } catch (_) {
-    // ignore and keep page usable
+
   }
 }
 
-loadComponent('navbar-root', '/component/nav.html');
-loadComponent('footer-root', '/component/footer.html');
+window.siteBranding = fetch('/api/config')
+  .then((r) => r.json())
+  .then((c) => (c && c.institution ? c : null))
+  .catch(() => null);
+
+const PAGE_LABELS = {
+  '/': '',
+  '/notice': 'Notices',
+  '/program': 'Programs',
+  '/gallary': 'Gallery',
+  '/staff': 'Staff',
+  '/about': 'About us',
+};
+
+function initialsOf(name) {
+  return String(name || '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join('');
+}
+
+function applyTheme(inst) {
+  if (!inst.themeColor) return;
+  const root = document.documentElement.style;
+  root.setProperty('--brand-primary', inst.themeColor);
+  root.setProperty('--brand-secondary', `color-mix(in srgb, ${inst.themeColor} 82%, #ffffff)`);
+}
+
+function brandNav(inst) {
+  const nav = document.getElementById('navbar-root');
+  if (!nav) return;
+
+  const title = nav.querySelector('.brand-text h1');
+  const sub = nav.querySelector('.brand-text p');
+  if (title) title.textContent = inst.name;
+  if (sub) sub.textContent = inst.address || inst.type || '';
+
+  const logoBox = nav.querySelector('.logo-box');
+  if (logoBox) {
+    logoBox.innerHTML = inst.logo
+      ? `<img src="${escapeHtml(inst.logo)}" alt="${escapeHtml(inst.name)} logo" class="logo-image" />`
+      : `<div class="logo-initials">${escapeHtml(initialsOf(inst.name))}</div>`;
+  }
+
+  const phone = nav.querySelector('a[aria-label="Contact"]');
+  if (phone) {
+    if (inst.phone) phone.href = `tel:${inst.phone.replace(/[^0-9+]/g, '')}`;
+    else phone.remove();
+  }
+
+  const mail = nav.querySelector('a[aria-label="Email"]');
+  if (mail) {
+    if (inst.email) mail.href = `mailto:${inst.email}`;
+    else mail.remove();
+  }
+
+  ['Facebook', 'Instagram', 'X', 'Share'].forEach((label) => {
+    const el = nav.querySelector(`[aria-label="${label}"]`);
+    if (el) el.remove();
+  });
+
+  const menu = nav.querySelector('.menu');
+  if (menu && !menu.querySelector('.login-link')) {
+    const li = document.createElement('li');
+    li.innerHTML = '<a href="/login" class="login-link">Login</a>';
+    menu.appendChild(li);
+  }
+
+  const label = PAGE_LABELS[location.pathname];
+  document.title = label ? `${label} - ${inst.name}` : inst.name;
+}
+
+function brandFooter(inst) {
+  const footer = document.getElementById('footer-root');
+  if (!footer) return;
+
+  const rows = [
+    inst.address ? `<li><i class="fa-solid fa-location-dot"></i> ${escapeHtml(inst.address)}</li>` : '',
+    inst.phone ? `<li><i class="fa-solid fa-mobile-screen-button"></i> ${escapeHtml(inst.phone)}</li>` : '',
+    inst.email ? `<li><i class="fa-regular fa-envelope"></i> ${escapeHtml(inst.email)}</li>` : '',
+    inst.website ? `<li><i class="fa-solid fa-globe"></i> <a href="${escapeHtml(inst.website)}" target="_blank" rel="noopener">${escapeHtml(inst.website)}</a></li>` : '',
+  ].join('');
+
+  footer.innerHTML = `
+    <footer class="site-footer">
+      <div class="footer-container">
+        <section class="footer-col profile-col">
+          ${
+            inst.logo
+              ? `<div class="profile-avatar has-logo"><img src="${escapeHtml(inst.logo)}" alt="${escapeHtml(inst.name)} logo" /></div>`
+              : `<div class="profile-avatar" aria-hidden="true">${escapeHtml(initialsOf(inst.name))}</div>`
+          }
+          <h3 class="profile-name">${escapeHtml(inst.name)}</h3>
+          <p class="profile-role">${escapeHtml(inst.type || '')}</p>
+        </section>
+        <section class="footer-col">
+          <h4>Menus</h4>
+          <ul>
+            <li><a href="/notice"><span>→</span> Notices</a></li>
+            <li><a href="/program"><span>→</span> Programs</a></li>
+            <li><a href="/gallary"><span>→</span> Gallery</a></li>
+            <li><a href="/staff"><span>→</span> Staff</a></li>
+            <li><a href="/about"><span>→</span> About us</a></li>
+          </ul>
+        </section>
+        <section class="footer-col">
+          <h4>Portal</h4>
+          <ul>
+            <li><a href="/login"><span>→</span> Student / Teacher / Parent login</a></li>
+          </ul>
+        </section>
+        <section class="footer-col">
+          <h4>Contact</h4>
+          <ul class="contact-list">${rows || '<li>Contact details coming soon</li>'}</ul>
+        </section>
+      </div>
+    </footer>`;
+}
+
+loadComponent('navbar-root', '/component/nav.html').then(async () => {
+  const b = await window.siteBranding;
+  if (b) {
+    applyTheme(b.institution);
+    brandNav(b.institution);
+  }
+});
+
+loadComponent('footer-root', '/component/footer.html').then(async () => {
+  const b = await window.siteBranding;
+  if (b) brandFooter(b.institution);
+});
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -203,6 +334,12 @@ async function loadHomeSlider() {
     }
   ];
 
+  const branding = await window.siteBranding;
+  if (branding) {
+    applyTheme(branding.institution);
+    fallbackSlides[0].title = branding.institution.name;
+  }
+
   let items = fallbackSlides;
 
   try {
@@ -309,8 +446,95 @@ document.addEventListener('click', (event) => {
   btn.textContent = expanded ? 'See more' : 'See less';
 });
 
-// Initialize on page load
+const NOTICE_POPUP_WINDOW_MS = 24 * 60 * 60 * 1000;
+const NOTICE_POPUP_KEY = 'seenNoticePopups';
+
+function readSeenNotices() {
+  try {
+    return JSON.parse(localStorage.getItem(NOTICE_POPUP_KEY)) || {};
+  } catch (_) {
+    return {};
+  }
+}
+
+function markNoticesSeen(ids) {
+  const now = Date.now();
+  const seen = readSeenNotices();
+  ids.forEach((id) => {
+    seen[id] = now;
+  });
+  Object.keys(seen).forEach((id) => {
+    if (now - seen[id] > NOTICE_POPUP_WINDOW_MS * 2) delete seen[id];
+  });
+  try {
+    localStorage.setItem(NOTICE_POPUP_KEY, JSON.stringify(seen));
+  } catch (_) {
+
+  }
+}
+
+async function showNoticePopup() {
+  let notices;
+  try {
+    notices = await fetchUploads('notices');
+  } catch (_) {
+    return;
+  }
+
+  const now = Date.now();
+  const seen = readSeenNotices();
+  const fresh = (Array.isArray(notices) ? notices : []).filter((n) => {
+    const age = now - new Date(n.createdAt).getTime();
+    return age >= 0 && age < NOTICE_POPUP_WINDOW_MS;
+  });
+  const unseen = fresh.filter((n) => !seen[n.id]);
+  if (!unseen.length) return;
+
+  const notice = unseen[0];
+  const others = unseen.length - 1;
+  const lastFocus = document.activeElement;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'notice-popup-overlay';
+  overlay.innerHTML = `
+    <div class="notice-popup" role="dialog" aria-modal="true" aria-labelledby="noticePopupTitle">
+      <button type="button" class="notice-popup-close" aria-label="Close notice">&times;</button>
+      <div class="notice-popup-tag">New notice</div>
+      ${notice.imageUrl ? `<img src="${escapeHtml(notice.imageUrl)}" alt="${escapeHtml(notice.title || 'Notice image')}" class="notice-popup-image" />` : ''}
+      <h2 id="noticePopupTitle" class="notice-popup-title">${escapeHtml(notice.title || 'Notice')}</h2>
+      <div class="notice-popup-date">${formatDate(notice.createdAt)}</div>
+      ${notice.details ? `<p class="notice-popup-text">${escapeHtml(notice.details)}</p>` : ''}
+      <div class="notice-popup-actions">
+        ${location.pathname === '/notice' ? '' : `<a href="/notice" class="notice-popup-link">${others ? `See all notices (${others} more new)` : 'See all notices'}</a>`}
+        <button type="button" class="notice-popup-ok">Close</button>
+      </div>
+    </div>`;
+
+  const close = () => {
+    markNoticesSeen(unseen.map((n) => n.id));
+    document.removeEventListener('keydown', onKey);
+    document.body.classList.remove('notice-popup-open');
+    overlay.remove();
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  };
+
+  const onKey = (event) => {
+    if (event.key === 'Escape') close();
+  };
+
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay || event.target.closest('.notice-popup-close, .notice-popup-ok')) close();
+  });
+  overlay.querySelector('.notice-popup-link')?.addEventListener('click', () => markNoticesSeen(unseen.map((n) => n.id)));
+  document.addEventListener('keydown', onKey);
+
+  document.body.appendChild(overlay);
+  document.body.classList.add('notice-popup-open');
+  overlay.querySelector('.notice-popup-ok').focus();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  showNoticePopup();
   loadHomeSlider();
   loadStaff();
   loadNotices();

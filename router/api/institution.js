@@ -1,207 +1,236 @@
 const express = require("express");
-const { PrismaClient } = require("@prisma/client");
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+const multer = require("multer");
 
+const prisma = require("../../lib/prisma");
 const authenticateToken = require("../../middleware/auth.js");
-const requireSuperAdmin = require("../../middleware/superAdmin.js");
+const requireSuperAdmin = require("../../middleware/superadmin.js");
+const { checkSubdomain, portalUrl } = require("../../lib/tenant");
+const {
+  validateInstitutionInput,
+  createInstitutionWithAdmin,
+  suggestSubdomain,
+  errorStatus,
+} = require("../../lib/institutions");
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
-//get istitutaions 
-// Get All Institutions
-router.get(
-  "/",
-  authenticateToken,
-  requireSuperAdmin,
-  async (req, res) => {
-    try {
-      const institutions = await prisma.institution.findMany({
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
+router.use(authenticateToken, requireSuperAdmin);
 
-      res.json({
-        success: true,
-        data: institutions,
-      });
+function present(institution, req) {
+  return {
+    ...institution,
+    portalUrl: institution.subdomain ? portalUrl(req, institution.subdomain) : null,
+  };
+}
 
-    } catch (error) {
-      console.error("Get institutions error:", error);
+function fail(res, message, status = 400, field) {
+  return res.status(status).json({ success: false, message, field });
+}
 
-      res.status(500).json({
-        success: false,
-        message: "Failed to fetch institutions",
-      });
-    }
+router.get("/", async (req, res) => {
+  try {
+    const institutions = await prisma.institution.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json({
+      success: true,
+      data: institutions.map((i) => present(i, req)),
+    });
+  } catch (error) {
+    console.error("Get institutions error:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch institutions" });
   }
-);
+});
 
-
-
-
-// Create Institution
-router.post(
-  "/",
-  authenticateToken,
-  requireSuperAdmin,
-  async (req, res) => {
-    try {
-      const {
-        name,
-        code,
-        type,
-        email,
-        phone,
-        address,
-        website,
-        subdomain,
-        themeColor,
-        isActive,
-      } = req.body;
-
-      // Required fields
-      if (!name || !code || !subdomain) {
-        return res.status(400).json({
-          success: false,
-          message: "College name, code and subdomain are required",
-        });
-      }
-
-      // Clean values
-      const cleanName = name.trim();
-      const cleanCode = code.trim().toUpperCase();
-      const cleanSubdomain = subdomain.trim().toLowerCase();
-
-      // Validate subdomain
-      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(cleanSubdomain)) {
-        return res.status(400).json({
-          success: false,
-          message:
-            "Invalid subdomain. Use only lowercase letters, numbers and hyphens.",
-        });
-      }
-
-      // Check duplicate code
-      const existingCode = await prisma.institution.findUnique({
-        where: {
-          code: cleanCode,
-        },
-      });
-
-      if (existingCode) {
-        return res.status(409).json({
-          success: false,
-          message: "College code already exists",
-        });
-      }
-
-      // Check duplicate subdomain
-      const existingSubdomain = await prisma.institution.findUnique({
-        where: {
-          subdomain: cleanSubdomain,
-        },
-      });
-
-      if (existingSubdomain) {
-        return res.status(409).json({
-          success: false,
-          message: "Subdomain already exists",
-        });
-      }
-
-      // Create institution
-      const institution = await prisma.institution.create({
-        data: {
-          name: cleanName,
-          code: cleanCode,
-          type: type?.trim() || null,
-          email: email?.trim() || null,
-          phone: phone?.trim() || null,
-          address: address?.trim() || null,
-          website: website?.trim() || null,
-          subdomain: cleanSubdomain,
-          themeColor: themeColor || "#2563eb",
-          isActive: isActive !== false,
-        },
-      });
-
-      res.status(201).json({
-        success: true,
-        message: "Institution created successfully",
-        institution,
-      });
-    } catch (error) {
-      console.error("Create institution error:", error);
-
-      res.status(500).json({
-        success: false,
-        message: "Failed to create institution",
-      });
-    }
+router.get("/suggest-subdomain", async (req, res) => {
+  try {
+    res.json({ success: true, value: await suggestSubdomain(req.query.name) });
+  } catch (error) {
+    console.error("Suggest subdomain error:", error);
+    res.status(500).json({ success: false, message: "Failed to suggest a subdomain" });
   }
-);
-router.patch("/:id/status", authenticateToken, requireSuperAdmin, async (req, res) => {
-    try {
-        const institutionId = Number(req.params.id);
-        const { isActive } = req.body;
+});
 
-        if (Number.isNaN(institutionId)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid institution ID"
-            });
-        }
+router.get("/check-subdomain", async (req, res) => {
+  try {
+    const excludeId = Number(req.query.excludeId) || undefined;
+    const result = await checkSubdomain(prisma, req.query.value, excludeId);
 
-        if (typeof isActive !== "boolean") {
-            return res.status(400).json({
-                success: false,
-                message: "isActive must be true or false"
-            });
-        }
+    res.json({
+      success: true,
+      available: result.available,
+      message: result.message,
+      url: result.available ? portalUrl(req, result.value) : null,
+    });
+  } catch (error) {
+    console.error("Check subdomain error:", error);
+    res.status(500).json({ success: false, message: "Failed to check subdomain" });
+  }
+});
 
-        const institution = await prisma.institution.findUnique({
-            where: {
-                id: institutionId
-            }
-        });
+router.post("/", async (req, res) => {
+  try {
+    const { errors, data } = await validateInstitutionInput(req.body || {}, { creating: true });
 
-        if (!institution) {
-            return res.status(404).json({
-                success: false,
-                message: "Institution not found"
-            });
-        }
-
-        const updatedInstitution = await prisma.institution.update({
-            where: {
-                id: institutionId
-            },
-            data: {
-                isActive: isActive
-            }
-        });
-
-        return res.json({
-            success: true,
-            message: isActive
-                ? "Institution activated successfully"
-                : "Institution deactivated successfully",
-            data: {
-                id: updatedInstitution.id,
-                name: updatedInstitution.name,
-                isActive: updatedInstitution.isActive
-            }
-        });
-
-    } catch (error) {
-        console.error("Institution status update error:", error);
-
-        return res.status(500).json({
-            success: false,
-            message: "Failed to update institution status"
-        });
+    const firstKey = Object.keys(errors)[0];
+    if (firstKey) {
+      return res.status(errorStatus(firstKey))
+        .json({ success: false, message: errors[firstKey], field: firstKey, errors });
     }
+
+    const { institution, credentials } = await createInstitutionWithAdmin(data, req.body, {
+      createAdmin: req.body.createAdmin !== false,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Institution created successfully",
+      institution: present(institution, req),
+      adminCredentials: credentials,
+    });
+  } catch (error) {
+    if (error.code === "P2002") {
+      return fail(res, "Code, subdomain or admin username already exists", 409);
+    }
+
+    console.error("Create institution error:", error);
+    res.status(500).json({ success: false, message: "Failed to create institution" });
+  }
+});
+
+router.put("/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id)) {
+      return fail(res, "Invalid institution ID");
+    }
+
+    const current = await prisma.institution.findUnique({ where: { id } });
+
+    if (!current) {
+      return fail(res, "Institution not found", 404);
+    }
+
+    const { errors, data } = await validateInstitutionInput(req.body || {}, { excludeId: id });
+
+    const firstKey = Object.keys(errors)[0];
+    if (firstKey) {
+      return res.status(400).json({ success: false, message: errors[firstKey], field: firstKey, errors });
+    }
+
+    const updated = await prisma.institution.update({ where: { id }, data });
+
+    res.json({
+      success: true,
+      message: "Institution updated successfully",
+      institution: present(updated, req),
+    });
+  } catch (error) {
+    if (error.code === "P2002") {
+      return fail(res, "Code, subdomain or custom domain already exists", 409);
+    }
+
+    console.error("Update institution error:", error);
+    res.status(500).json({ success: false, message: "Failed to update institution" });
+  }
+});
+
+const UPLOAD_ROOT = path.join(__dirname, "..", "..", "public", "uploads");
+
+const logoUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = path.join(UPLOAD_ROOT, String(Number(req.params.id)), "logo");
+      fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      cb(null, `${crypto.randomBytes(12).toString("hex")}${path.extname(file.originalname).toLowerCase()}`);
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+  fileFilter: (req, file, cb) => {
+    if (![".jpg", ".jpeg", ".png", ".webp", ".gif"].includes(path.extname(file.originalname).toLowerCase())) {
+      return cb(new Error("Only JPG, PNG, WEBP or GIF images are allowed"));
+    }
+    cb(null, true);
+  },
+}).single("logo");
+
+router.put("/:id/logo", (req, res) => {
+  logoUpload(req, res, async (uploadError) => {
+    try {
+      if (uploadError) {
+        const message = uploadError.code === "LIMIT_FILE_SIZE" ? "Logo must be 5MB or smaller" : uploadError.message;
+        return fail(res, message);
+      }
+
+      const id = Number(req.params.id);
+      const institution = Number.isInteger(id)
+        ? await prisma.institution.findUnique({ where: { id } })
+        : null;
+
+      if (!institution || !req.file) {
+        if (req.file) fs.unlink(req.file.path, () => {});
+        return fail(res, institution ? "A logo image is required" : "Institution not found", institution ? 400 : 404);
+      }
+
+      const url = `/uploads/${id}/logo/${req.file.filename}`;
+
+      await prisma.institution.update({ where: { id }, data: { logo: url } });
+
+      if (institution.logo && institution.logo.startsWith(`/uploads/${id}/`)) {
+        fs.unlink(path.join(UPLOAD_ROOT, institution.logo.replace("/uploads/", "")), () => {});
+      }
+
+      res.json({ success: true, message: "Logo saved", logo: url });
+    } catch (error) {
+      console.error("Logo upload error:", error);
+      res.status(500).json({ success: false, message: "Failed to save logo" });
+    }
+  });
+});
+
+router.patch("/:id/status", async (req, res) => {
+  try {
+    const institutionId = Number(req.params.id);
+    const { isActive } = req.body;
+
+    if (Number.isNaN(institutionId)) {
+      return fail(res, "Invalid institution ID");
+    }
+
+    if (typeof isActive !== "boolean") {
+      return fail(res, "isActive must be true or false");
+    }
+
+    const institution = await prisma.institution.findUnique({ where: { id: institutionId } });
+
+    if (!institution) {
+      return fail(res, "Institution not found", 404);
+    }
+
+    const updated = await prisma.institution.update({
+      where: { id: institutionId },
+      data: { isActive },
+    });
+
+    res.json({
+      success: true,
+      message: isActive
+        ? "Institution activated successfully"
+        : "Institution deactivated successfully",
+      data: { id: updated.id, name: updated.name, isActive: updated.isActive },
+    });
+  } catch (error) {
+    console.error("Institution status update error:", error);
+    res.status(500).json({ success: false, message: "Failed to update institution status" });
+  }
 });
 
 module.exports = router;

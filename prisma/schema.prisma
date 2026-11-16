@@ -41,6 +41,12 @@ model Institution {
   teacherProfiles TeacherProfile[]
   parentProfiles  ParentProfile[]
   adminProfiles   AdminProfile[]
+
+  classes    Class[]
+  homework   Homework[]
+  resources  Resource[]
+  attendance Attendance[]
+  complaints Complaint[]
 }
 
 model User {
@@ -95,13 +101,19 @@ model StudentProfile {
   address       String?
   admissionDate DateTime?
   status        String?
+  classId       Int?
+  rollNo        String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  institution    Institution     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution    Institution          @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  class          Class?               @relation(fields: [classId], references: [id], onDelete: SetNull)
   parentStudents ParentStudent[]
+  submissions    HomeworkSubmission[]
+  attendance     Attendance[]
+  complaints     Complaint[]
 
   @@unique([institutionId, studentCode])
 }
@@ -120,14 +132,19 @@ model TeacherProfile {
   designation  String?
   status       String?
 
-  themeColor String @default("#2563eb")
+  themeColor String  @default("#2563eb")
   subdomain  String? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution Institution    @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  classes     TeacherClass[]
+  homework    Homework[]
+  resources   Resource[]
+  attendance  Attendance[]
+  complaints  Complaint[]
 
   @@unique([institutionId, employeeCode])
 }
@@ -206,4 +223,144 @@ model Upload {
   updatedAt DateTime @updatedAt
 
   institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+model Class {
+  id            Int     @id @default(autoincrement())
+  institutionId Int
+  name          String
+  section       String  @default("")
+  academicYear  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  institution Institution      @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  students    StudentProfile[]
+  teachers    TeacherClass[]
+  homework    Homework[]
+  resources   Resource[]
+  attendance  Attendance[]
+
+  @@unique([institutionId, name, section])
+}
+
+model TeacherClass {
+  id        Int    @id @default(autoincrement())
+  teacherId Int
+  classId   Int
+  subject   String @default("")
+
+  teacher TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  class   Class          @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, classId, subject])
+}
+
+model Homework {
+  id            Int      @id @default(autoincrement())
+  institutionId Int
+  classId       Int
+  teacherId     Int
+  title         String
+  description   String?
+  subject       String?
+  dueDate       DateTime
+  files         Json     @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  institution Institution          @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  class       Class                @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacher     TeacherProfile       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  submissions HomeworkSubmission[]
+
+  @@index([classId, dueDate])
+}
+
+model HomeworkSubmission {
+  id         Int       @id @default(autoincrement())
+  homeworkId Int
+  studentId  Int
+  note       String?
+  files      Json      @default("[]")
+  isLate     Boolean   @default(false)
+  grade      String?
+  feedback   String?
+  reviewedAt DateTime?
+
+  submittedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  homework Homework       @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  student  StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([homeworkId, studentId])
+}
+
+model Resource {
+  id            Int     @id @default(autoincrement())
+  institutionId Int
+  classId       Int
+  teacherId     Int
+  title         String
+  description   String?
+  subject       String?
+  files         Json    @default("[]")
+
+  createdAt DateTime @default(now())
+
+  institution Institution    @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  class       Class          @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacher     TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([classId])
+}
+
+model Attendance {
+  id            Int              @id @default(autoincrement())
+  institutionId Int
+  classId       Int
+  studentId     Int
+  markedById    Int
+  date          DateTime         @db.Date
+  status        AttendanceStatus
+  remark        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  institution Institution    @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  class       Class          @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  markedBy    TeacherProfile @relation(fields: [markedById], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, date])
+  @@index([classId, date])
+}
+
+model Complaint {
+  id            Int       @id @default(autoincrement())
+  institutionId Int
+  teacherId     Int
+  studentId     Int
+  subject       String
+  message       String
+  readAt        DateTime?
+
+  createdAt DateTime @default(now())
+
+  institution Institution    @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  teacher     TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
 }

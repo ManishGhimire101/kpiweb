@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Register your school - Shikshya</title>
+<meta name="description" content="Register your school on Shikshya and get its own address, portal and website.">
+<meta name="theme-color" content="#0e3b2c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/landing/landing.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></symbol>
+  <symbol id="i-admin" viewBox="0 0 24 24"><path d="M4 21V9l8-5 8 5v12"/><path d="M9 21v-6h6v6M3 21h18"/></symbol>
+  <symbol id="i-teacher" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4M7 9h6M7 12h4"/></symbol>
+  <symbol id="i-student" viewBox="0 0 24 24"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5M22 9v6"/></symbol>
+  <symbol id="i-parent" viewBox="0 0 24 24"><circle cx="8" cy="7" r="3"/><circle cx="17" cy="10" r="2.2"/><path d="M2.5 20c.5-3.8 2.7-6 5.5-6s5 2.2 5.5 6M14 20c.3-2.6 1.4-4.4 3-4.4s2.8 1.8 3 4.4"/></symbol>
+  <symbol id="i-platform" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3L10 14M21 3l-6.5 18-4.5-7-7-4.5z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.5c0 4.6-3.2 8.2-7.5 9.5-4.3-1.3-7.5-4.9-7.5-9.5V6z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+</svg>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap nav">
+    <a class="brand" href="/"><span class="brand-mark">S</span>Shikshya</a>
+    <button class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks"><span></span><span></span></button>
+    <nav class="nav-links" id="navLinks">
+      <a href="/#how">How it works</a>
+      <a href="/#features">Features</a>
+      <a href="/#roles">Screens</a>
+      <a href="/#website">Website</a>
+      <a href="/about">About</a>
+      <a class="nav-new" href="/register" aria-current="page">Create new</a>
+      <a class="nav-cta" href="/#find">Find your school</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<section class="reg-hero">
+  <div class="wrap">
+    <h1>Register your school.</h1>
+    <p>Fill in a few details and your school gets its own address, a portal for every role and a public website, straight away.</p>
+  </div>
+</section>
+
+<section class="reg">
+  <div class="wrap reg-grid">
+    <aside class="reg-aside">
+      <ol class="reg-steps">
+        <li><span class="num">01</span><div><b>Tell us about the school</b><p>Name, contact details and the kind of institution.</p></div></li>
+        <li><span class="num">02</span><div><b>Pick its address</b><p>Checked live, so you know straight away if it is free.</p></div></li>
+        <li><span class="num">03</span><div><b>Get the admin sign-in</b><p>A username and temporary password appear when you finish. Change the password on first sign-in.</p></div></li>
+      </ol>
+    </aside>
+
+    <div class="reg-card">
+      <form id="regForm" novalidate>
+        <fieldset>
+          <legend>School details</legend>
+          <div class="fields">
+            <div class="field full">
+              <label for="name">School name <em>*</em></label>
+              <input id="name" name="name" type="text" maxlength="120" autocomplete="organization" required>
+              <p class="err" data-for="name"></p>
+            </div>
+            <div class="field">
+              <label for="code">School code <em>*</em></label>
+              <input id="code" name="code" type="text" maxlength="20" autocapitalize="characters" spellcheck="false" required>
+              <p class="hint">2-20 letters, numbers or hyphens. Used for the admin username.</p>
+              <p class="err" data-for="code"></p>
+            </div>
+            <div class="field">
+              <label for="type">Type</label>
+              <input id="type" name="type" type="text" list="types" placeholder="School">
+              <datalist id="types"><option value="School"><option value="College"><option value="Institute"><option value="Academy"><option value="Coaching centre"></datalist>
+              <p class="err" data-for="type"></p>
+            </div>
+            <div class="field">
+              <label for="email">School email</label>
+              <input id="email" name="email" type="email" autocomplete="email">
+              <p class="err" data-for="email"></p>
+            </div>
+            <div class="field">
+              <label for="phone">Phone</label>
+              <input id="phone" name="phone" type="tel" autocomplete="tel">
+              <p class="err" data-for="phone"></p>
+            </div>
+            <div class="field full">
+              <label for="address">Address</label>
+              <input id="address" name="address" type="text" autocomplete="street-address">
+              <p class="err" data-for="address"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Web address and colour</legend>
+          <div class="fields">
+            <div class="field full">
+              <label for="subdomain">School address <em>*</em></label>
+              <div class="addr-input">
+                <input id="subdomain" name="subdomain" type="text" maxlength="30" spellcheck="false" autocapitalize="off" required>
+                <span class="suffix">.localhost</span>
+              </div>
+              <p class="addr-status" id="subStatus" aria-live="polite">Lowercase letters, numbers and hyphens.</p>
+              <p class="err" data-for="subdomain"></p>
+            </div>
+            <div class="field">
+              <label for="themeColor">Brand colour</label>
+              <div class="color-input">
+                <input id="themeColor" name="themeColor" type="color" value="#0e3b2c">
+                <span id="colorValue">#0e3b2c</span>
+              </div>
+              <p class="err" data-for="themeColor"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>First administrator</legend>
+          <div class="fields">
+            <div class="field">
+              <label for="adminName">Admin name</label>
+              <input id="adminName" name="adminName" type="text" autocomplete="name">
+              <p class="err" data-for="adminName"></p>
+            </div>
+            <div class="field">
+              <label for="adminEmail">Admin email</label>
+              <input id="adminEmail" name="adminEmail" type="email" autocomplete="email">
+              <p class="err" data-for="adminEmail"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <p class="form-err" id="formErr" role="alert" hidden></p>
+        <button class="btn dark wide" type="submit" id="regSubmit">Register school</button>
+        <p class="fine">Fields marked * are required. You can change everything except the code and address later from the admin panel.</p>
+      </form>
+
+      <div class="reg-done" id="regDone" hidden tabindex="-1">
+        <span class="done-ic"><svg><use href="#i-check"/></svg></span>
+        <h2><span id="doneName">Your school</span> is ready.</h2>
+        <p>Save these sign-in details now. The password is shown only once and must be changed at first sign-in.</p>
+        <dl class="creds">
+          <div><dt>School address</dt><dd><a id="donePortal" href="#" target="_blank" rel="noopener"></a></dd></div>
+          <div><dt>Username</dt><dd><code id="doneUser"></code><button type="button" class="copy" data-copy="doneUser">Copy</button></dd></div>
+          <div><dt>Temporary password</dt><dd><code id="donePass"></code><button type="button" class="copy" data-copy="donePass">Copy</button></dd></div>
+        </dl>
+        <div class="done-actions">
+          <a class="btn dark" id="doneLogin" href="#">Go to sign-in</a>
+          <button type="button" class="btn line" id="copyAll">Copy all details</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="/"><span class="brand-mark">S</span>Shikshya</a>
+      <p>Homework, attendance, parent updates and a public website for every school, on its own address.</p>
+    </div>
+    <div><h4>Product</h4><a href="/#features">Features</a><a href="/#roles">Screens</a><a href="/#website">School website</a></div>
+    <div><h4>Shikshya</h4><a href="/about">About</a><a href="/#how">How it works</a><a href="/#find">Find your school</a></div>
+  </div>
+  <div class="wrap foot-base"><span>&copy; Shikshya</span><span>A calm kind of school software.</span></div>
+</footer>
+<script src="/landing/landing.js"></script>
+<script src="/landing/register.js"></script>
+</body>
+</html>

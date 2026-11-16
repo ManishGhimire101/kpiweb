@@ -123,7 +123,7 @@ if (institutionForm) {
 
 async function loadComponent(elementId, componentPath) {
   try {
-    const response = await fetch(componentPath);
+    const response = await fetch(componentPath, { cache: "no-cache" });
 
     if (!response.ok) {
       throw new Error(`Failed to load component: ${componentPath}`);

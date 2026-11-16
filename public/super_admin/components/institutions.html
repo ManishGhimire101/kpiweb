@@ -1,6 +1,5 @@
 <div class="institutions-page">
 
-  <!-- PAGE HEADER -->
   <div class="page-header">
 
     <div>
@@ -20,8 +19,6 @@
 
   </div>
 
-
-  <!-- FILTER BAR -->
   <div class="filter-bar">
 
     <div class="search-box">
@@ -40,8 +37,6 @@
 
   </div>
 
-
-  <!-- INSTITUTIONS TABLE -->
   <div class="dashboard-section">
 
     <div class="section-header">
@@ -55,7 +50,6 @@
       </div>
 
     </div>
-
 
     <div class="table-container">
 
@@ -89,11 +83,6 @@
 
   </div>
 
-
-  <!-- ============================= -->
-  <!-- VIEW INSTITUTION MODAL -->
-  <!-- ============================= -->
-
   <div
     class="modal-overlay"
     id="viewInstitutionModal"
@@ -119,7 +108,6 @@
 
       </div>
 
-
       <div class="modal-body">
 
         <div class="institution-profile">
@@ -142,7 +130,6 @@
           </div>
 
         </div>
-
 
         <div class="details-grid">
 
@@ -200,7 +187,6 @@
 
       </div>
 
-
       <div class="modal-footer">
 
         <button
@@ -224,11 +210,6 @@
     </div>
 
   </div>
-
-
-  <!-- ============================= -->
-  <!-- CREATE / EDIT MODAL -->
-  <!-- ============================= -->
 
   <div
     class="modal-overlay"
@@ -260,7 +241,6 @@
 
       </div>
 
-
       <form id="institutionForm">
 
         <div class="modal-body">
@@ -269,9 +249,6 @@
             type="hidden"
             id="institutionId"
           />
-
-
-          <!-- BASIC INFORMATION -->
 
           <div class="form-section">
 
@@ -292,7 +269,6 @@
                 />
               </div>
 
-
               <div class="form-group">
                 <label for="institutionCode">
                   Institution Code *
@@ -306,7 +282,6 @@
                 />
               </div>
 
-
               <div class="form-group">
                 <label for="institutionType">
                   Institution Type
@@ -318,7 +293,6 @@
                   placeholder="Example: College"
                 />
               </div>
-
 
               <div class="form-group">
                 <label for="institutionEmail">
@@ -332,7 +306,6 @@
                 />
               </div>
 
-
               <div class="form-group">
                 <label for="institutionPhone">
                   Phone
@@ -344,7 +317,6 @@
                   placeholder="Phone number"
                 />
               </div>
-
 
               <div class="form-group full-width">
                 <label for="institutionAddress">
@@ -361,9 +333,6 @@
             </div>
 
           </div>
-
-
-          <!-- DOMAIN -->
 
           <div class="form-section">
 
@@ -386,18 +355,19 @@
                     placeholder="abc"
                   />
 
-                  <span>
-                    .myims.com
+                  <span id="institutionSubdomainSuffix">
+                    .localhost
                   </span>
 
                 </div>
 
                 <small id="institutionDomainPreview">
-                  abc.myims.com
+                  abc.localhost
                 </small>
 
-              </div>
+                <small id="institutionSubdomainStatus" style="display:block;margin-top:4px;font-weight:600"></small>
 
+              </div>
 
               <div class="form-group">
 
@@ -416,9 +386,6 @@
             </div>
 
           </div>
-
-
-          <!-- BRANDING -->
 
           <div class="form-section">
 
@@ -440,7 +407,6 @@
 
               </div>
 
-
               <div class="form-group">
 
                 <label for="institutionLogo">
@@ -459,8 +425,61 @@
 
           </div>
 
+          <div class="form-section" id="adminAccountSection">
 
-          <!-- STATUS -->
+            <h3>Institution Admin Account</h3>
+
+            <label class="checkbox-label">
+
+              <input
+                type="checkbox"
+                id="institutionCreateAdmin"
+                checked
+              />
+
+              <span>
+                Create an admin login for this institution
+              </span>
+
+            </label>
+
+            <div class="form-grid" id="adminAccountFields">
+
+              <div class="form-group">
+
+                <label for="institutionAdminName">
+                  Admin name
+                </label>
+
+                <input
+                  type="text"
+                  id="institutionAdminName"
+                  placeholder="Principal / Administrator"
+                />
+
+              </div>
+
+              <div class="form-group">
+
+                <label for="institutionAdminEmail">
+                  Admin email
+                </label>
+
+                <input
+                  type="email"
+                  id="institutionAdminEmail"
+                  placeholder="admin@college.edu.np"
+                />
+
+              </div>
+
+            </div>
+
+            <small>
+              Username and a temporary password are generated automatically and shown once after creation.
+            </small>
+
+          </div>
 
           <div class="form-section">
 
@@ -482,14 +501,12 @@
 
           </div>
 
-
           <div
             id="institutionFormMessage"
             class="form-message"
           ></div>
 
         </div>
-
 
         <div class="modal-footer">
 
@@ -516,11 +533,6 @@
     </div>
 
   </div>
-
-
-  <!-- ============================= -->
-  <!-- CONFIRM STATUS MODAL -->
-  <!-- ============================= -->
 
   <div
     class="modal-overlay"

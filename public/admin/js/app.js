@@ -3,12 +3,48 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  const passwordState = await adminPasswordState();
+
+  if (passwordState === "expired") {
+    adminLogout();
+    return;
+  }
+
+  if (passwordState === "change") {
+    window.location.replace("/admin/change-password");
+    return;
+  }
+
   await loadNavbar();
 
   await loadSidebar();
 
   initializeAdminInterface();
 });
+
+async function adminPasswordState() {
+  try {
+    const response = await fetch("/api/auth/me", {
+      headers: { Authorization: `Bearer ${getAdminToken()}` },
+    });
+
+    if (response.status === 401) {
+      return "expired";
+    }
+
+    const data = await response.json();
+
+    if (data.user) {
+      localStorage.setItem("adminUser", JSON.stringify(data.user));
+      localStorage.setItem("portalUser", JSON.stringify(data.user));
+      localStorage.setItem("portalToken", getAdminToken());
+    }
+
+    return data.user && data.user.mustChangePassword ? "change" : "ok";
+  } catch (error) {
+    return "ok";
+  }
+}
 
 async function loadNavbar() {
   try {
@@ -57,23 +93,17 @@ function initializeAdminInterface() {
     return;
   }
 
-  // Username
-
   const navbarUsername = document.getElementById("navbarUsername");
 
   if (navbarUsername) {
     navbarUsername.textContent = user.username;
   }
 
-  // User initial
-
   const userInitial = document.getElementById("userInitial");
 
   if (userInitial && user.username) {
     userInitial.textContent = user.username.charAt(0).toUpperCase();
   }
-
-  // Institution
 
   if (user.institution) {
     const institution = user.institution;
@@ -86,29 +116,7 @@ function initializeAdminInterface() {
       navbarInstitutionName.textContent = institution.name;
     }
 
-    const sidebarInstitutionName = document.getElementById(
-      "sidebarInstitutionName",
-    );
-
-    if (sidebarInstitutionName) {
-      sidebarInstitutionName.textContent = institution.name;
-    }
-
-    const sidebarInstitutionCode = document.getElementById(
-      "sidebarInstitutionCode",
-    );
-
-    if (sidebarInstitutionCode) {
-      sidebarInstitutionCode.textContent = institution.code;
-    }
-
-    const institutionInitial = document.getElementById(
-      "sidebarInstitutionInitial",
-    );
-
-    if (institutionInitial && institution.name) {
-      institutionInitial.textContent = institution.name.charAt(0).toUpperCase();
-    }
+    applyNavbarLogo(institution);
   }
 
   initializeMobileMenu();
@@ -172,12 +180,6 @@ function initializeLogout() {
   }
 }
 
-//for loadig multiple pages
-
-// ==========================================
-// PAGE LOADING
-// ==========================================
-
 async function loadPage(page) {
   page = page.trim();
 
@@ -216,6 +218,22 @@ async function loadPage(page) {
         initializeAdmissionModal();
       }
     }
+    if (page === "parents" && typeof initializeParents === "function") {
+      initializeParents();
+    }
+
+    if (page === "teachers" && typeof initializeTeachers === "function") {
+      initializeTeachers();
+    }
+
+    if (page === "website" && typeof initializeWebsite === "function") {
+      initializeWebsite();
+    }
+
+    if (page === "classes" && typeof initializeClasses === "function") {
+      initializeClasses();
+    }
+
     if (page === "dashboard") {
       pageContent.innerHTML = `
         <div class="page-loading">
@@ -253,10 +271,6 @@ async function loadPage(page) {
   }
 }
 
-// ==========================================
-// URL → PAGE
-// ==========================================
-
 function getPageFromURL() {
   const path = window.location.pathname.trim();
 
@@ -267,6 +281,8 @@ function getPageFromURL() {
 
     "/admin/students": "students",
     "/admin/teachers": "teachers",
+    "/admin/classes": "classes",
+    "/admin/website": "website",
     "/admin/parents": "parents",
     "/admin/programs": "programs",
     "/admin/courses": "courses",
@@ -278,10 +294,6 @@ function getPageFromURL() {
   return pages[path] || "dashboard";
 }
 
-// ==========================================
-// INITIAL PAGE
-// ==========================================
-
 function loadInitialPage() {
   const page = getPageFromURL();
 
@@ -289,10 +301,6 @@ function loadInitialPage() {
 
   loadPage(page);
 }
-
-// ==========================================
-// SIDEBAR NAVIGATION
-// ==========================================
 
 function initializePageNavigation() {
   document.addEventListener("click", (event) => {
@@ -312,22 +320,15 @@ function initializePageNavigation() {
 
     const url = link.getAttribute("href");
 
-    // Change active sidebar immediately
     updateActiveSidebar(page);
 
-    // Load component
     loadPage(page);
 
-    // Change URL without reload
     if (url) {
       window.history.pushState({ page: page }, "", url);
     }
   });
 }
-
-// ==========================================
-// BROWSER BACK / FORWARD
-// ==========================================
 
 window.addEventListener("popstate", () => {
   const page = getPageFromURL();
@@ -358,10 +359,6 @@ function updateActiveSidebar(page) {
   });
 }
 
-// ==========================================
-// START ADMIN APPLICATION
-// ==========================================
-
 document.addEventListener("DOMContentLoaded", async () => {
   if (!requireAdminLogin()) {
     return;
@@ -373,9 +370,39 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   initializeAdminInterface();
 
-  // Start navigation
   initializePageNavigation();
 
-  // Load page according to current URL
   loadInitialPage();
 });
+
+
+async function applyNavbarLogo(institution) {
+  const holder = document.getElementById("navbarInstitutionLogo");
+
+  if (!holder) {
+    return;
+  }
+
+  let logo = institution.logo || "";
+
+  if (!logo) {
+    try {
+      const response = await fetch("/api/config");
+      const data = await response.json();
+      logo = (data.institution && data.institution.logo) || "";
+    } catch (error) {
+      logo = "";
+    }
+  }
+
+  holder.textContent = "";
+
+  if (logo) {
+    const img = document.createElement("img");
+    img.src = logo;
+    img.alt = "";
+    holder.appendChild(img);
+  } else {
+    holder.textContent = (institution.name || "I").charAt(0).toUpperCase();
+  }
+}

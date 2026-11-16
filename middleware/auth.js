@@ -1,7 +1,16 @@
 const jwt = require("jsonwebtoken");
-const { PrismaClient } = require("@prisma/client");
+const prisma = require("../lib/prisma");
+const { passwordFingerprint } = require("../lib/passwords");
 
-const prisma = new PrismaClient();
+const SUPER_ADMIN_AUDIENCE = "super-admin";
+
+const PASSWORD_CHANGE_ALLOWED = new Set([
+  "/api/auth/me",
+  "/api/auth/change-password",
+  "/api/admin/change-password",
+  "/api/super-admin/me",
+  "/api/super-admin/change-password",
+]);
 
 async function authenticateToken(req, res, next) {
   try {
@@ -32,7 +41,7 @@ async function authenticateToken(req, res, next) {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
 
     const user = await prisma.user.findUnique({
       where: {
@@ -54,7 +63,66 @@ async function authenticateToken(req, res, next) {
       });
     }
 
+    if (user.role === "SUPER_ADMIN") {
+      if (
+        decoded.aud !== SUPER_ADMIN_AUDIENCE ||
+        decoded.pwv !== passwordFingerprint(user.passwordHash)
+      ) {
+        return res.status(401).json({
+          success: false,
+          message: "Session expired. Please sign in again.",
+        });
+      }
+    } else if (decoded.aud === SUPER_ADMIN_AUDIENCE) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid authentication token",
+      });
+    }
+
+    const tenant = req.tenant;
+
+    if (tenant) {
+      if (user.role === "SUPER_ADMIN") {
+        if (tenant.kind !== "super") {
+          return res.status(403).json({
+            success: false,
+            message: "Super Admin access is only available on the super admin domain",
+          });
+        }
+      } else {
+        if (
+          tenant.kind !== "institution" ||
+          !tenant.institution ||
+          user.institutionId !== tenant.institution.id
+        ) {
+          return res.status(403).json({
+            success: false,
+            message: "This account does not belong to this institution",
+          });
+        }
+
+        if (!tenant.institution.isActive) {
+          return res.status(403).json({
+            success: false,
+            message: "This institution is currently inactive",
+          });
+        }
+      }
+    }
+
     req.user = user;
+
+    if (
+      user.mustChangePassword &&
+      !PASSWORD_CHANGE_ALLOWED.has(req.originalUrl.split("?")[0])
+    ) {
+      return res.status(403).json({
+        success: false,
+        code: "PASSWORD_CHANGE_REQUIRED",
+        message: "Please change your temporary password to continue",
+      });
+    }
 
     next();
   } catch (error) {
@@ -82,3 +150,4 @@ async function authenticateToken(req, res, next) {
 }
 
 module.exports = authenticateToken;
+module.exports.SUPER_ADMIN_AUDIENCE = SUPER_ADMIN_AUDIENCE;

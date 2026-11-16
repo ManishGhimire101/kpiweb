@@ -24,7 +24,7 @@
 
     padding: 11px 18px;
 
-    background: #2563eb;
+    background: #111827;
     color: white;
 
     text-decoration: none;
@@ -41,7 +41,7 @@
 }
 
 .primary-button:hover {
-    background: #1d4ed8;
+    background: #000000;
 }
 
 
@@ -76,7 +76,7 @@
 }
 
 .search-box input:focus {
-    border-color: #2563eb;
+    border-color: #111827;
 }
 
 .students-toolbar select {
@@ -163,7 +163,7 @@ tbody tr:hover {
 .student-code {
     font-weight: 600;
 
-    color: #2563eb;
+    color: #111827;
 }
 
 
@@ -203,7 +203,7 @@ tbody tr:hover {
 
     cursor: pointer;
 
-    color: #2563eb;
+    color: #111827;
 
     font-weight: 600;
 
@@ -412,7 +412,7 @@ tbody tr:hover {
 
     justify-content: center;
 
-    background: #2563eb;
+    background: #111827;
 
     color: white;
 
@@ -500,10 +500,10 @@ tbody tr:hover {
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-    border-color: #2563eb;
+    border-color: #111827;
 
     box-shadow:
-        0 0 0 3px rgba(37, 99, 235, 0.1);
+        0 0 0 3px rgba(17, 24, 39, 0.1);
 }
 
 
@@ -517,13 +517,13 @@ tbody tr:hover {
 .admission-info-box {
     padding: 15px;
 
-    background: #eff6ff;
+    background: #f3f4f6;
 
-    border: 1px solid #bfdbfe;
+    border: 1px solid #d1d5db;
 
     border-radius: 8px;
 
-    color: #1e40af;
+    color: #111827;
 }
 
 .admission-info-box strong {
@@ -718,7 +718,7 @@ tbody tr:hover {
 
     border-radius: 12px;
 
-    background: #eff6ff;
+    background: #f3f4f6;
 
     font-size: 22px;
 }
@@ -815,7 +815,7 @@ tbody tr:hover {
 
     background: linear-gradient(
         135deg,
-        #2563eb,
+        #111827,
         #4f46e5
     );
 
@@ -825,7 +825,7 @@ tbody tr:hover {
     font-weight: 700;
 
     box-shadow:
-        0 8px 20px rgba(37, 99, 235, 0.22);
+        0 8px 20px rgba(17, 24, 39, 0.22);
 }
 
 .student-profile-main {
@@ -864,7 +864,7 @@ tbody tr:hover {
         border: none;
     background: none;
     cursor: pointer;
-    color: #2563eb;
+    color: #111827;
     font-weight: 600;
     margin-right: 10px;
 }
@@ -990,7 +990,7 @@ tbody tr:hover {
 }
 
 .section-icon.blue {
-    background: #eff6ff;
+    background: #f3f4f6;
 }
 
 .section-icon.purple {
@@ -1170,7 +1170,7 @@ hr{
     margin: 0 auto 12px;
 
     border: 3px solid #e5e7eb;
-    border-top-color: #2563eb;
+    border-top-color: #111827;
 
     border-radius: 50%;
 

@@ -1,12 +1,31 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
-const { PrismaClient } = require("@prisma/client");
 
 const authenticateToken = require("../../middleware/auth.js");
-const requireSuperAdmin = require("../../middleware/superAdmin.js");
+const requireSuperAdmin = require("../../middleware/superadmin.js");
+const prisma = require("../../lib/prisma");
 
 const router = express.Router();
-const prisma = new PrismaClient();
+
+async function protectSuperAdminTarget(req, res, next) {
+  try {
+    const id = Number(req.params.id);
+    const target = Number.isInteger(id)
+      ? await prisma.user.findUnique({ where: { id }, select: { role: true } })
+      : null;
+
+    if (target && target.role === "SUPER_ADMIN") {
+      return res.status(403).json({
+        success: false,
+        message: "Super Admin accounts cannot be changed from user management",
+      });
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
 
 
 // ==========================================
@@ -373,6 +392,7 @@ router.put(
   "/:id",
   authenticateToken,
   requireSuperAdmin,
+  protectSuperAdminTarget,
   async (req, res) => {
 
     try {
@@ -670,6 +690,7 @@ router.patch(
   "/:id/status",
   authenticateToken,
   requireSuperAdmin,
+  protectSuperAdminTarget,
   async (req, res) => {
 
     try {
@@ -800,6 +821,7 @@ router.post(
   "/:id/reset-password",
   authenticateToken,
   requireSuperAdmin,
+  protectSuperAdminTarget,
   async (req, res) => {
 
     try {

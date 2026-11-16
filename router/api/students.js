@@ -1,17 +1,12 @@
 const express = require("express");
+const { generateTemporaryPassword } = require("../../lib/passwords");
 const bcrypt = require("bcrypt");
-const { PrismaClient } = require("@prisma/client");
 
 const authenticateToken = require("../../middleware/auth");
 const requireAdmin = require("../../middleware/admin");
 
-const prisma = new PrismaClient();
+const prisma = require("../../lib/prisma");
 const router = express.Router();
-
-// =====================================================
-// NEW ADMISSION
-// POST /api/admin/students/admission
-// =====================================================
 
 router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
   try {
@@ -26,10 +21,6 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
 
     const { student, parent } = req.body;
 
-    // ==========================================
-    // VALIDATE STUDENT
-    // ==========================================
-
     if (!student || !student.firstName) {
       return res.status(400).json({
         success: false,
@@ -37,20 +28,12 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
       });
     }
 
-    // ==========================================
-    // VALIDATE PARENT
-    // ==========================================
-
     if (!parent || !parent.firstName || !parent.email) {
       return res.status(400).json({
         success: false,
         message: "Parent first name and email are required",
       });
     }
-
-    // ==========================================
-    // GET INSTITUTION
-    // ==========================================
 
     const institution = await prisma.institution.findUnique({
       where: {
@@ -78,9 +61,35 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
       });
     }
 
-    // ==========================================
-    // GENERATE STUDENT CODE
-    // ==========================================
+    const parentEmail = String(parent.email).trim().toLowerCase();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Enter a valid parent email address",
+      });
+    }
+
+    const emailOwner = await prisma.user.findFirst({
+      where: { email: { equals: parentEmail, mode: "insensitive" } },
+      include: { parentProfile: true },
+    });
+
+    const existingParent =
+      emailOwner &&
+      emailOwner.role === "PARENT" &&
+      emailOwner.institutionId === institutionId &&
+      emailOwner.parentProfile
+        ? emailOwner
+        : null;
+
+    if (emailOwner && !existingParent) {
+      return res.status(409).json({
+        success: false,
+        field: "parentEmail",
+        message: "This parent email is already used by another account. Use a different email.",
+      });
+    }
 
     const lastStudent = await prisma.studentProfile.findFirst({
       where: {
@@ -108,17 +117,9 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
 
     const studentCode = `${institution.code}-${nextNumber}`;
 
-    // ==========================================
-    // GENERATE USERNAMES
-    // ==========================================
-
     const studentUsername = `${studentCode}`;
 
     const parentUsername = `${institution.code}-parent-${nextNumber}`;
-
-    // ==========================================
-    // GENERATE TEMPORARY PASSWORDS
-    // ==========================================
 
     const studentPassword = generateTemporaryPassword();
 
@@ -128,14 +129,7 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
 
     const parentPasswordHash = await bcrypt.hash(parentPassword, 12);
 
-    // ==========================================
-    // CREATE EVERYTHING IN ONE TRANSACTION
-    // ==========================================
-
     const result = await prisma.$transaction(async (tx) => {
-      // ------------------------------
-      // CREATE STUDENT USER
-      // ------------------------------
 
       const studentUser = await tx.user.create({
         data: {
@@ -147,10 +141,6 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
           mustChangePassword: true,
         },
       });
-
-      // ------------------------------
-      // CREATE STUDENT PROFILE
-      // ------------------------------
 
       const studentProfile = await tx.studentProfile.create({
         data: {
@@ -179,9 +169,25 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
         },
       });
 
-      // ------------------------------
-      // CREATE PARENT USER
-      // ------------------------------
+      if (existingParent) {
+        const parentStudent = await tx.parentStudent.create({
+          data: {
+            parentId: existingParent.parentProfile.id,
+            studentId: studentProfile.id,
+            relationship: parent.relationship || null,
+            isPrimary: true,
+          },
+        });
+
+        return {
+          studentUser,
+          studentProfile,
+          parentUser: existingParent,
+          parentProfile: existingParent.parentProfile,
+          parentStudent,
+          parentExisting: true,
+        };
+      }
 
       const parentUser = await tx.user.create({
         data: {
@@ -189,7 +195,7 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
 
           username: parentUsername,
 
-          email: parent.email.trim(),
+          email: parentEmail,
 
           passwordHash: parentPasswordHash,
 
@@ -200,10 +206,6 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
           mustChangePassword: true,
         },
       });
-
-      // ------------------------------
-      // CREATE PARENT PROFILE
-      // ------------------------------
 
       const parentProfile = await tx.parentProfile.create({
         data: {
@@ -221,10 +223,6 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
           occupation: parent.occupation ? parent.occupation.trim() : null,
         },
       });
-
-      // ------------------------------
-      // LINK PARENT TO STUDENT
-      // ------------------------------
 
       const parentStudent = await tx.parentStudent.create({
         data: {
@@ -247,14 +245,12 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
       };
     });
 
-    // ==========================================
-    // RESPONSE
-    // ==========================================
-
     return res.status(201).json({
       success: true,
 
-      message: "New admission created successfully",
+      message: result.parentExisting
+        ? "New admission created and linked to the existing parent account"
+        : "New admission created successfully",
 
       data: {
         student: {
@@ -278,11 +274,23 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
 
           email: result.parentUser.email,
 
-          temporaryPassword: parentPassword,
+          existing: Boolean(result.parentExisting),
+
+          temporaryPassword: result.parentExisting ? null : parentPassword,
         },
       },
     });
   } catch (error) {
+    if (error.code === "P2002") {
+      const fields = (error.meta && error.meta.target) || [];
+      return res.status(409).json({
+        success: false,
+        message: fields.includes("email")
+          ? "This parent email is already used by another account. Use a different email."
+          : "Another admission was saved at the same moment. Please try again.",
+      });
+    }
+
     console.error("New admission error:", error);
 
     return res.status(500).json({
@@ -292,28 +300,6 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-// =====================================================
-// TEMPORARY PASSWORD GENERATOR
-// =====================================================
-
-function generateTemporaryPassword() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
-
-  let password = "";
-
-  for (let i = 0; i < 10; i++) {
-    const randomIndex = Math.floor(Math.random() * chars.length);
-
-    password += chars[randomIndex];
-  }
-
-  return password;
-}
-
-// =====================================================
-// GET ALL STUDENTS
-// GET /api/admin/students
-// =====================================================
 
 router.get("/", authenticateToken, requireAdmin, async (req, res) => {
   try {
@@ -353,11 +339,6 @@ router.get("/", authenticateToken, requireAdmin, async (req, res) => {
     });
   }
 });
-
-// =====================================================
-// GET SINGLE STUDENT
-// GET /api/admin/students/:id
-// =====================================================
 
 router.get("/:id", authenticateToken, requireAdmin, async (req, res) => {
   try {
@@ -427,10 +408,6 @@ router.get("/:id", authenticateToken, requireAdmin, async (req, res) => {
     });
   }
 });
-// =====================================================
-// UPDATE STUDENT
-// PUT /api/admin/students/:id
-// =====================================================
 
 router.put("/:id", authenticateToken, requireAdmin, async (req, res) => {
   try {
@@ -438,20 +415,12 @@ router.put("/:id", authenticateToken, requireAdmin, async (req, res) => {
 
     const studentId = Number(req.params.id);
 
-    // ==========================================
-    // VALIDATE ID
-    // ==========================================
-
     if (isNaN(studentId)) {
       return res.status(400).json({
         success: false,
         message: "Invalid student ID",
       });
     }
-
-    // ==========================================
-    // GET DATA
-    // ==========================================
 
     const {
       firstName,
@@ -465,20 +434,12 @@ router.put("/:id", authenticateToken, requireAdmin, async (req, res) => {
       accountStatus,
     } = req.body;
 
-    // ==========================================
-    // VALIDATE STUDENT
-    // ==========================================
-
     if (!firstName || !firstName.trim()) {
       return res.status(400).json({
         success: false,
         message: "Student first name is required",
       });
     }
-
-    // ==========================================
-    // FIND STUDENT
-    // ==========================================
 
     const existingStudent = await prisma.studentProfile.findFirst({
       where: {
@@ -498,14 +459,7 @@ router.put("/:id", authenticateToken, requireAdmin, async (req, res) => {
       });
     }
 
-    // ==========================================
-    // UPDATE STUDENT + USER
-    // ==========================================
-
     const updatedStudent = await prisma.$transaction(async (tx) => {
-      // ------------------------------
-      // UPDATE STUDENT PROFILE
-      // ------------------------------
 
       const student = await tx.studentProfile.update({
         where: {
@@ -531,10 +485,6 @@ router.put("/:id", authenticateToken, requireAdmin, async (req, res) => {
         },
       });
 
-      // ------------------------------
-      // UPDATE USER ACCOUNT
-      // ------------------------------
-
       const user = await tx.user.update({
         where: {
           id: existingStudent.userId,
@@ -553,10 +503,6 @@ router.put("/:id", authenticateToken, requireAdmin, async (req, res) => {
         user,
       };
     });
-
-    // ==========================================
-    // RESPONSE
-    // ==========================================
 
     return res.json({
       success: true,
@@ -585,10 +531,6 @@ router.put("/:id", authenticateToken, requireAdmin, async (req, res) => {
     });
   }
 });
-// =====================================================
-// UPDATE STUDENT ACCOUNT STATUS
-// PATCH /api/admin/students/:id/status
-// =====================================================
 
 router.patch(
     "/:id/status",

@@ -1,11 +1,11 @@
 let institutions = [];
 let currentInstitution = null;
 let institutionStatusTarget = null;
-
-
-// ==========================================
-// LOAD INSTITUTIONS COMPONENT
-// ==========================================
+let portalSuffix = ".localhost";
+let subdomainTouched = false;
+let subdomainAvailable = null;
+let subdomainTimer = null;
+let subdomainSeq = 0;
 
 async function loadInstitutionsPage() {
 
@@ -18,6 +18,13 @@ async function loadInstitutionsPage() {
   `;
 
   try {
+
+    try {
+      const config = await (await fetch("/api/config")).json();
+      if (config.portalSuffix) portalSuffix = config.portalSuffix;
+    } catch (configError) {
+      console.error("Config load failed", configError);
+    }
 
     const response = await fetch(
       "/super_admin/components/institutions.html"
@@ -46,11 +53,6 @@ async function loadInstitutionsPage() {
   }
 }
 
-
-// ==========================================
-// INITIALIZE
-// ==========================================
-
 function initializeInstitutionPage() {
 
   document
@@ -60,14 +62,12 @@ function initializeInstitutionPage() {
       () => openCreateInstitutionModal()
     );
 
-
   document
     .getElementById("institutionSearch")
     ?.addEventListener(
       "input",
       filterInstitutions
     );
-
 
   document
     .getElementById("institutionStatusFilter")
@@ -76,7 +76,6 @@ function initializeInstitutionPage() {
       filterInstitutions
     );
 
-
   document
     .getElementById("institutionForm")
     ?.addEventListener(
@@ -84,14 +83,32 @@ function initializeInstitutionPage() {
       saveInstitution
     );
 
-
   document
     .getElementById("institutionSubdomain")
     ?.addEventListener(
       "input",
-      updateDomainPreview
+      onSubdomainInput
     );
 
+  document
+    .getElementById("institutionName")
+    ?.addEventListener(
+      "input",
+      onInstitutionNameInput
+    );
+
+  document
+    .getElementById("institutionCreateAdmin")
+    ?.addEventListener(
+      "change",
+      (event) => {
+        document.getElementById("adminAccountFields").style.display =
+          event.target.checked ? "" : "none";
+      }
+    );
+
+  const suffixEl = document.getElementById("institutionSubdomainSuffix");
+  if (suffixEl) suffixEl.textContent = portalSuffix;
 
   document
     .getElementById("viewEditInstitutionButton")
@@ -108,16 +125,12 @@ function initializeInstitutionPage() {
       }
     );
 
-
   document
     .getElementById("confirmStatusButton")
     ?.addEventListener(
       "click",
       confirmStatusChange
     );
-
-
-  // Close modal buttons
 
   document
     .querySelectorAll("[data-close-modal]")
@@ -133,9 +146,6 @@ function initializeInstitutionPage() {
       });
 
     });
-
-
-  // Close when clicking overlay
 
   document
     .querySelectorAll(".modal-overlay")
@@ -153,11 +163,6 @@ function initializeInstitutionPage() {
 
 }
 
-
-// ==========================================
-// FETCH
-// ==========================================
-
 async function fetchInstitutions() {
 
   try {
@@ -169,7 +174,6 @@ async function fetchInstitutions() {
       throw new Error("Authentication token missing");
     }
 
-
     const response = await fetch(
       "/api/super-admin/institutions",
       {
@@ -179,9 +183,7 @@ async function fetchInstitutions() {
       }
     );
 
-
     const result = await response.json();
-
 
     if (!response.ok) {
       throw new Error(
@@ -189,7 +191,6 @@ async function fetchInstitutions() {
         "Failed to load institutions"
       );
     }
-
 
     institutions = result.data || result.institutions || [];
 
@@ -223,11 +224,6 @@ async function fetchInstitutions() {
 
 }
 
-
-// ==========================================
-// RENDER
-// ==========================================
-
 function renderInstitutions(list = institutions) {
 
   const tbody =
@@ -240,15 +236,12 @@ function renderInstitutions(list = institutions) {
       "institutionCount"
     );
 
-
   if (!tbody) return;
-
 
   if (count) {
     count.textContent =
       `${list.length} institution${list.length === 1 ? "" : "s"}`;
   }
-
 
   if (list.length === 0) {
 
@@ -263,7 +256,6 @@ function renderInstitutions(list = institutions) {
     return;
   }
 
-
   tbody.innerHTML = list.map(institution => {
 
     const statusClass =
@@ -271,12 +263,10 @@ function renderInstitutions(list = institutions) {
         ? "status-active"
         : "status-inactive";
 
-
     const statusText =
       institution.isActive
         ? "Active"
         : "Inactive";
-
 
     const created =
       institution.createdAt
@@ -285,7 +275,6 @@ function renderInstitutions(list = institutions) {
           ).toLocaleDateString()
         : "-";
 
-
     return `
       <tr>
 
@@ -293,7 +282,18 @@ function renderInstitutions(list = institutions) {
           <div class="institution-table-name">
 
             <div class="table-logo">
-              🏫
+              ${
+                institution.logo
+                  ? `<img src="${escapeHtml(institution.logo)}" alt="">`
+                  : escapeHtml(
+                      String(institution.name || "")
+                        .split(/\s+/)
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .map((w) => w[0].toUpperCase())
+                        .join("")
+                    )
+              }
             </div>
 
             <div>
@@ -313,7 +313,6 @@ function renderInstitutions(list = institutions) {
           </div>
         </td>
 
-
         <td>
           <strong>
             ${escapeHtml(
@@ -322,20 +321,18 @@ function renderInstitutions(list = institutions) {
           </strong>
         </td>
 
-
         <td>
           ${institution.subdomain
             ? `
               <span class="domain-text">
                 ${escapeHtml(
                   institution.subdomain
-                )}.myims.com
+                )}${portalSuffix}
               </span>
             `
             : "-"
           }
         </td>
-
 
         <td>
           ${escapeHtml(
@@ -343,18 +340,15 @@ function renderInstitutions(list = institutions) {
           )}
         </td>
 
-
         <td>
           <span class="status-badge ${statusClass}">
             ${statusText}
           </span>
         </td>
 
-
         <td>
           ${created}
         </td>
-
 
         <td>
 
@@ -408,11 +402,6 @@ function renderInstitutions(list = institutions) {
 
 }
 
-
-// ==========================================
-// SEARCH / FILTER
-// ==========================================
-
 function filterInstitutions() {
 
   const search =
@@ -424,14 +413,12 @@ function filterInstitutions() {
       .trim()
       .toLowerCase() || "";
 
-
   const status =
     document
       .getElementById(
         "institutionStatusFilter"
       )
       ?.value || "all";
-
 
   const filtered =
     institutions.filter(institution => {
@@ -455,7 +442,6 @@ function filterInstitutions() {
           ?.toLowerCase()
           .includes(search);
 
-
       const matchesStatus =
         status === "all" ||
 
@@ -465,19 +451,12 @@ function filterInstitutions() {
         (status === "inactive" &&
           !institution.isActive);
 
-
       return matchesSearch && matchesStatus;
 
     });
 
-
   renderInstitutions(filtered);
 }
-
-
-// ==========================================
-// VIEW
-// ==========================================
 
 async function viewInstitution(id) {
 
@@ -488,46 +467,38 @@ async function viewInstitution(id) {
         item => item.id === id
       );
 
-
     if (!institution) {
       throw new Error(
         "Institution not found"
       );
     }
 
-
     currentInstitution = institution;
-
 
     document.getElementById(
       "viewInstitutionName"
     ).textContent =
       institution.name || "-";
 
-
     document.getElementById(
       "viewInstitutionCode"
     ).textContent =
       institution.code || "-";
-
 
     document.getElementById(
       "viewInstitutionType"
     ).textContent =
       institution.type || "-";
 
-
     document.getElementById(
       "viewInstitutionEmail"
     ).textContent =
       institution.email || "-";
 
-
     document.getElementById(
       "viewInstitutionPhone"
     ).textContent =
       institution.phone || "-";
-
 
     document.getElementById(
       "viewInstitutionStatus"
@@ -536,44 +507,37 @@ async function viewInstitution(id) {
         ? "Active"
         : "Inactive";
 
-
     document.getElementById(
       "viewInstitutionSubdomain"
     ).textContent =
       institution.subdomain
-        ? `${institution.subdomain}.myims.com`
+        ? `${institution.subdomain}${portalSuffix}`
         : "-";
-
 
     document.getElementById(
       "viewInstitutionDomain"
     ).textContent =
       institution.customDomain || "-";
 
-
     document.getElementById(
       "viewInstitutionAddress"
     ).textContent =
       institution.address || "-";
-
 
     document.getElementById(
       "viewInstitutionWebsite"
     ).textContent =
       institution.website || "-";
 
-
     document.getElementById(
       "viewInstitutionCreated"
     ).textContent =
       formatDate(institution.createdAt);
 
-
     document.getElementById(
       "viewInstitutionUpdated"
     ).textContent =
       formatDate(institution.updatedAt);
-
 
     openModal(
       "viewInstitutionModal"
@@ -591,11 +555,6 @@ async function viewInstitution(id) {
 
 }
 
-
-// ==========================================
-// CREATE
-// ==========================================
-
 function openCreateInstitutionModal() {
 
   const form =
@@ -605,54 +564,49 @@ function openCreateInstitutionModal() {
 
   form.reset();
 
+  subdomainTouched = false;
+  subdomainAvailable = null;
+  setSubdomainStatus("", "");
+  updateDomainPreview();
+
+  document.getElementById("adminAccountSection").style.display = "";
+  document.getElementById("adminAccountFields").style.display = "";
 
   document.getElementById(
     "institutionId"
   ).value = "";
-
 
   document.getElementById(
     "institutionFormTitle"
   ).textContent =
     "Create Institution";
 
-
   document.getElementById(
     "institutionFormSubtitle"
   ).textContent =
     "Add a new institution to MYIMS.";
 
-
   document.getElementById(
     "institutionActive"
   ).checked = true;
-
 
   document.getElementById(
     "institutionThemeColor"
   ).value =
     "#2563eb";
 
-
   document.getElementById(
     "saveInstitutionButton"
   ).textContent =
     "Create Institution";
 
-
   clearFormMessage();
-
 
   openModal(
     "institutionFormModal"
   );
 
 }
-
-
-// ==========================================
-// EDIT
-// ==========================================
 
 function openEditInstitutionById(id) {
 
@@ -661,12 +615,10 @@ function openEditInstitutionById(id) {
       item => item.id === id
     );
 
-
   if (!institution) {
     alert("Institution not found.");
     return;
   }
-
 
   openEditInstitutionModal(
     institution
@@ -674,102 +626,89 @@ function openEditInstitutionById(id) {
 
 }
 
-
 function openEditInstitutionModal(institution) {
 
   currentInstitution =
     institution;
 
+  subdomainTouched = true;
+  subdomainAvailable = true;
+  setSubdomainStatus("", "");
+  document.getElementById("adminAccountSection").style.display = "none";
 
   document.getElementById(
     "institutionId"
   ).value =
     institution.id;
 
-
   document.getElementById(
     "institutionName"
   ).value =
     institution.name || "";
-
 
   document.getElementById(
     "institutionCode"
   ).value =
     institution.code || "";
 
-
   document.getElementById(
     "institutionType"
   ).value =
     institution.type || "";
-
 
   document.getElementById(
     "institutionEmail"
   ).value =
     institution.email || "";
 
-
   document.getElementById(
     "institutionPhone"
   ).value =
     institution.phone || "";
-
 
   document.getElementById(
     "institutionAddress"
   ).value =
     institution.address || "";
 
-
   document.getElementById(
     "institutionSubdomain"
   ).value =
     institution.subdomain || "";
-
 
   document.getElementById(
     "institutionCustomDomain"
   ).value =
     institution.customDomain || "";
 
-
   document.getElementById(
     "institutionThemeColor"
   ).value =
     institution.themeColor || "#2563eb";
-
 
   document.getElementById(
     "institutionActive"
   ).checked =
     institution.isActive;
 
-
   updateDomainPreview();
-
 
   document.getElementById(
     "institutionFormTitle"
   ).textContent =
     "Edit Institution";
 
-
   document.getElementById(
     "institutionFormSubtitle"
   ).textContent =
     "Update institution information.";
-
 
   document.getElementById(
     "saveInstitutionButton"
   ).textContent =
     "Save Changes";
 
-
   clearFormMessage();
-
 
   openModal(
     "institutionFormModal"
@@ -777,25 +716,17 @@ function openEditInstitutionModal(institution) {
 
 }
 
-
-// ==========================================
-// SAVE
-// ==========================================
-
 async function saveInstitution(event) {
 
   event.preventDefault();
-
 
   const id =
     document.getElementById(
       "institutionId"
     ).value;
 
-
   const isEdit =
     Boolean(id);
-
 
   const data = {
 
@@ -856,7 +787,6 @@ async function saveInstitution(event) {
 
   };
 
-
   if (!data.name ||
       !data.code ||
       !data.subdomain) {
@@ -869,12 +799,38 @@ async function saveInstitution(event) {
     return;
   }
 
+  if (!/^[A-Za-z0-9][A-Za-z0-9-]{1,19}$/.test(data.code)) {
+    showFormMessage(
+      "Code must be 2-20 characters: letters, numbers and hyphens.",
+      "error"
+    );
+    return;
+  }
+
+  if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    showFormMessage("Enter a valid institution email address.", "error");
+    return;
+  }
+
+  clearTimeout(subdomainTimer);
+  await runSubdomainCheck();
+
+  if (subdomainAvailable !== true) {
+    showFormMessage("Choose an available subdomain before saving.", "error");
+    document.getElementById("institutionSubdomain").focus();
+    return;
+  }
+
+  if (!isEdit) {
+    data.createAdmin = document.getElementById("institutionCreateAdmin").checked;
+    data.adminName = document.getElementById("institutionAdminName").value.trim();
+    data.adminEmail = document.getElementById("institutionAdminEmail").value.trim();
+  }
 
   const button =
     document.getElementById(
       "saveInstitutionButton"
     );
-
 
   button.disabled = true;
 
@@ -883,7 +839,6 @@ async function saveInstitution(event) {
       ? "Saving..."
       : "Creating...";
 
-
   try {
 
     const token =
@@ -891,18 +846,15 @@ async function saveInstitution(event) {
         "superAdminToken"
       );
 
-
     const url =
       isEdit
         ? `/api/super-admin/institutions/${id}`
         : "/api/super-admin/institutions";
 
-
     const method =
       isEdit
         ? "PUT"
         : "POST";
-
 
     const response =
       await fetch(url, {
@@ -922,10 +874,8 @@ async function saveInstitution(event) {
 
       });
 
-
     const result =
       await response.json();
-
 
     if (!response.ok) {
       throw new Error(
@@ -934,6 +884,31 @@ async function saveInstitution(event) {
       );
     }
 
+    const logoFile = document.getElementById("institutionLogo")?.files?.[0];
+
+    if (logoFile) {
+
+      const savedId = isEdit ? id : result.institution.id;
+      const logoData = new FormData();
+      logoData.append("logo", logoFile);
+
+      const logoResponse = await fetch(
+        `/api/super-admin/institutions/${savedId}/logo`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${token}` },
+          body: logoData
+        }
+      );
+
+      if (!logoResponse.ok) {
+        const logoResult = await logoResponse.json().catch(() => ({}));
+        throw new Error(
+          `Institution saved, but the logo failed: ${logoResult.message || "upload error"}`
+        );
+      }
+
+    }
 
     showFormMessage(
       isEdit
@@ -942,11 +917,11 @@ async function saveInstitution(event) {
       "success"
     );
 
-
-    // Refresh list without page reload
+    if (!isEdit) {
+      showCreatedInstitution(result);
+    }
 
     await fetchInstitutions();
-
 
     setTimeout(() => {
 
@@ -955,7 +930,6 @@ async function saveInstitution(event) {
       );
 
     }, 600);
-
 
   } catch (error) {
 
@@ -980,11 +954,6 @@ async function saveInstitution(event) {
 
 }
 
-
-// ==========================================
-// STATUS
-// ==========================================
-
 function openStatusModal(id, currentlyActive) {
 
   const institution =
@@ -992,15 +961,12 @@ function openStatusModal(id, currentlyActive) {
       item => item.id === id
     );
 
-
   if (!institution) return;
-
 
   institutionStatusTarget = {
     id,
     newStatus: !currentlyActive
   };
-
 
   document.getElementById(
     "statusModalTitle"
@@ -1009,14 +975,12 @@ function openStatusModal(id, currentlyActive) {
       ? "Deactivate Institution"
       : "Activate Institution";
 
-
   document.getElementById(
     "statusModalMessage"
   ).textContent =
     currentlyActive
       ? `Are you sure you want to deactivate ${institution.name}?`
       : `Are you sure you want to activate ${institution.name}?`;
-
 
   document.getElementById(
     "confirmStatusButton"
@@ -1025,13 +989,11 @@ function openStatusModal(id, currentlyActive) {
       ? "Deactivate"
       : "Activate";
 
-
   openModal(
     "statusModal"
   );
 
 }
-
 
 async function confirmStatusChange() {
 
@@ -1039,24 +1001,20 @@ async function confirmStatusChange() {
     return;
   }
 
-
   const {
     id,
     newStatus
   } = institutionStatusTarget;
-
 
   const button =
     document.getElementById(
       "confirmStatusButton"
     );
 
-
   button.disabled = true;
 
   button.textContent =
     "Updating...";
-
 
   try {
 
@@ -1064,7 +1022,6 @@ async function confirmStatusChange() {
       localStorage.getItem(
         "superAdminToken"
       );
-
 
     const response =
       await fetch(
@@ -1089,10 +1046,8 @@ async function confirmStatusChange() {
         }
       );
 
-
     const result =
       await response.json();
-
 
     if (!response.ok) {
       throw new Error(
@@ -1101,14 +1056,11 @@ async function confirmStatusChange() {
       );
     }
 
-
     closeModal(
       "statusModal"
     );
 
-
     await fetchInstitutions();
-
 
   } catch (error) {
 
@@ -1130,10 +1082,175 @@ async function confirmStatusChange() {
 
 }
 
+function setSubdomainStatus(message, kind) {
 
-// ==========================================
-// DOMAIN PREVIEW
-// ==========================================
+  const el = document.getElementById("institutionSubdomainStatus");
+
+  if (!el) return;
+
+  el.textContent = message;
+  el.style.color = kind === "ok" ? "#15803d" : kind === "error" ? "#b91c1c" : "#6b7280";
+
+}
+
+async function runSubdomainCheck() {
+
+  const input = document.getElementById("institutionSubdomain");
+
+  if (!input) return;
+
+  const value = input.value.trim().toLowerCase();
+  const seq = ++subdomainSeq;
+
+  if (!value) {
+    subdomainAvailable = null;
+    setSubdomainStatus("", "");
+    return;
+  }
+
+  setSubdomainStatus("Checking availability...", "");
+
+  const excludeId = document.getElementById("institutionId").value;
+
+  try {
+
+    const response = await fetch(
+      `/api/super-admin/institutions/check-subdomain?value=${encodeURIComponent(value)}${excludeId ? `&excludeId=${excludeId}` : ""}`,
+      { headers: { Authorization: `Bearer ${localStorage.getItem("superAdminToken")}` } }
+    );
+
+    const result = await response.json();
+
+    if (seq !== subdomainSeq) return;
+
+    if (!response.ok) {
+      throw new Error(result.message || "Check failed");
+    }
+
+    subdomainAvailable = result.available;
+    setSubdomainStatus(
+      result.available ? `Available - ${result.url}` : result.message,
+      result.available ? "ok" : "error"
+    );
+
+  } catch (error) {
+
+    if (seq !== subdomainSeq) return;
+
+    subdomainAvailable = null;
+    setSubdomainStatus("Could not check availability", "error");
+
+  }
+
+}
+
+function onSubdomainInput(event) {
+
+  const input = event.target;
+  const cleaned = input.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
+
+  if (cleaned !== input.value) {
+    input.value = cleaned;
+  }
+
+  if (event.isTrusted) {
+    subdomainTouched = true;
+  }
+
+  updateDomainPreview();
+  subdomainAvailable = null;
+
+  clearTimeout(subdomainTimer);
+  subdomainTimer = setTimeout(runSubdomainCheck, 350);
+
+}
+
+let suggestTimer = null;
+
+function onInstitutionNameInput(event) {
+
+  if (document.getElementById("institutionId").value || subdomainTouched) return;
+
+  const name = event.target.value.trim();
+
+  clearTimeout(suggestTimer);
+
+  if (!name) {
+    document.getElementById("institutionSubdomain").value = "";
+    updateDomainPreview();
+    setSubdomainStatus("", "");
+    return;
+  }
+
+  suggestTimer = setTimeout(async () => {
+
+    try {
+
+      const response = await fetch(
+        `/api/super-admin/institutions/suggest-subdomain?name=${encodeURIComponent(name)}`,
+        { headers: { Authorization: `Bearer ${localStorage.getItem("superAdminToken")}` } }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || subdomainTouched) return;
+
+      const input = document.getElementById("institutionSubdomain");
+      input.value = result.value;
+      updateDomainPreview();
+      runSubdomainCheck();
+
+    } catch (error) {
+      console.error("Suggest subdomain failed", error);
+    }
+
+  }, 300);
+
+}
+
+function showCreatedInstitution(result) {
+
+  const url = result.institution.portalUrl;
+  const creds = result.adminCredentials;
+
+  const overlay = document.createElement("div");
+
+  overlay.style.cssText =
+    "position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:2000;padding:16px";
+
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:12px;max-width:520px;width:100%;padding:24px">
+      <h2 style="margin-bottom:8px">Institution created</h2>
+      <p style="margin-bottom:10px">${escapeHtml(result.institution.name)} is live at:</p>
+      <p style="margin-bottom:12px"><strong>${escapeHtml(url)}</strong></p>
+      ${creds ? `
+        <p style="font-size:14px;color:#6b7280;margin-bottom:6px">Admin login (shown only once - the admin must change the password on first sign-in):</p>
+        <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:12px;font-family:ui-monospace,Menlo,monospace;word-break:break-all">
+          Username: ${escapeHtml(creds.username)}<br>
+          Temporary password: ${escapeHtml(creds.temporaryPassword)}
+        </div>` : ""}
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+        ${creds ? '<button type="button" data-copy style="padding:8px 14px;border:1px solid #111827;background:#fff;color:#111827;border-radius:8px;cursor:pointer">Copy</button>' : ""}
+        <button type="button" data-done style="padding:8px 14px;border:0;background:#111827;color:#fff;border-radius:8px;cursor:pointer">Done</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  overlay.querySelector("[data-done]").addEventListener("click", () => overlay.remove());
+
+  const copy = overlay.querySelector("[data-copy]");
+
+  if (copy) {
+    copy.addEventListener("click", () => {
+      navigator.clipboard.writeText(
+        `Portal: ${url}\nUsername: ${creds.username}\nPassword: ${creds.temporaryPassword}`
+      );
+      copy.textContent = "Copied";
+    });
+  }
+
+}
 
 function updateDomainPreview() {
 
@@ -1146,27 +1263,19 @@ function updateDomainPreview() {
       .trim()
       .toLowerCase();
 
-
   const preview =
     document.getElementById(
       "institutionDomainPreview"
     );
 
-
   if (!preview) return;
-
 
   preview.textContent =
     subdomain
-      ? `${subdomain}.myims.com`
-      : "yourcollege.myims.com";
+      ? `${subdomain}${portalSuffix}`
+      : `yourcollege${portalSuffix}`;
 
 }
-
-
-// ==========================================
-// MODALS
-// ==========================================
 
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
@@ -1192,11 +1301,6 @@ function closeModal(modalId) {
     modal.classList.remove("active");
 }
 
-
-// ==========================================
-// FORM MESSAGE
-// ==========================================
-
 function showFormMessage(
   message,
   type
@@ -1207,19 +1311,15 @@ function showFormMessage(
       "institutionFormMessage"
     );
 
-
   if (!element) return;
-
 
   element.textContent =
     message;
-
 
   element.className =
     `form-message ${type}`;
 
 }
-
 
 function clearFormMessage() {
 
@@ -1228,9 +1328,7 @@ function clearFormMessage() {
       "institutionFormMessage"
     );
 
-
   if (!element) return;
-
 
   element.textContent = "";
 
@@ -1239,21 +1337,14 @@ function clearFormMessage() {
 
 }
 
-
-// ==========================================
-// HELPERS
-// ==========================================
-
 function formatDate(date) {
 
   if (!date) return "-";
-
 
   return new Date(date)
     .toLocaleString();
 
 }
-
 
 function escapeHtml(value) {
 
@@ -1263,7 +1354,6 @@ function escapeHtml(value) {
     return "";
 
   }
-
 
   return String(value)
     .replaceAll("&", "&amp;")

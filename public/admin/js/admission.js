@@ -428,8 +428,11 @@ function showAdmissionSuccess(data) {
         `Student Username: ${student.username}\n` +
         `Student Temporary Password: ${student.temporaryPassword}\n\n` +
 
-        `Parent Username: ${parent.username}\n` +
-        `Parent Email: ${parent.email}\n` +
-        `Parent Temporary Password: ${parent.temporaryPassword}`
+        (parent.existing
+            ? `Linked to existing parent account: ${parent.username} (${parent.email})\n` +
+              `The parent signs in with their current password.`
+            : `Parent Username: ${parent.username}\n` +
+              `Parent Email: ${parent.email}\n` +
+              `Parent Temporary Password: ${parent.temporaryPassword}`)
     );
 }

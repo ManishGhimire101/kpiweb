@@ -93,7 +93,6 @@
     </div>
   </section>
 
-  <!-- Fullscreen Image Modal -->
   <div id="fullscreenModal" class="fullscreen-modal">
     <div class="fullscreen-modal-content">
       <button class="fullscreen-modal-close" id="closeFullscreen" aria-label="Close fullscreen">
@@ -107,37 +106,32 @@
 
   <script src="/script.js"></script>
   <script>
-    // Fullscreen image viewer for notices
+
     const fullscreenModal = document.getElementById('fullscreenModal');
     const fullscreenImage = document.getElementById('fullscreenImage');
     const closeBtn = document.getElementById('closeFullscreen');
 
-    // Close modal on close button click
     closeBtn.addEventListener('click', () => {
       fullscreenModal.classList.remove('active');
     });
 
-    // Close modal on background click
     fullscreenModal.addEventListener('click', (e) => {
       if (e.target === fullscreenModal) {
         fullscreenModal.classList.remove('active');
       }
     });
 
-    // Close modal on Escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && fullscreenModal.classList.contains('active')) {
         fullscreenModal.classList.remove('active');
       }
     });
 
-    // Function to open fullscreen image
     function openFullscreenImage(imageSrc) {
       fullscreenImage.src = imageSrc;
       fullscreenModal.classList.add('active');
     }
 
-    // Add event listeners to notice images (this will be called after notices are loaded)
     function attachImageListeners() {
       const noticeImages = document.querySelectorAll('.notice-image');
       noticeImages.forEach(img => {
@@ -147,7 +141,6 @@
       });
     }
 
-    // Observe for changes in the notice list and attach listeners
     const noticeList = document.getElementById('noticeList');
     const observer = new MutationObserver(() => {
       attachImageListeners();
@@ -155,8 +148,7 @@
 
     observer.observe(noticeList, { childList: true, subtree: true });
 
-    // Initial attachment
     attachImageListeners();
-  </script>
+</script>
 </body>
 </html>

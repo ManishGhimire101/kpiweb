@@ -30,6 +30,13 @@ async function loadCurrentUser() {
 
         const user = data.user;
 
+        localStorage.setItem("superAdminUser", JSON.stringify(user));
+
+        if (user.mustChangePassword) {
+            window.location.replace("/superadmin/change-password");
+            return;
+        }
+
         const usernameElement =
             document.getElementById("username");
 
@@ -96,6 +103,11 @@ async function loadDashboard() {
 
     if (!response.ok) {
       console.error("Dashboard API error:", data);
+
+      if (data.code === "PASSWORD_CHANGE_REQUIRED") {
+        window.location.replace("/superadmin/change-password");
+        return;
+      }
 
       if (response.status === 401 || response.status === 403) {
         localStorage.removeItem("superAdminToken");
