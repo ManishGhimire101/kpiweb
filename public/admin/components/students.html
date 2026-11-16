@@ -1,0 +1,758 @@
+<section class="students-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1>Students</h1>
+
+      <p>Manage students of your institution</p>
+    </div>
+
+    <button type="button" class="primary-button" id="openAdmissionButton">
+      + New Admission
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="students-toolbar">
+    <div class="search-box">
+      <input type="text" id="studentSearch" placeholder="Search students..." />
+    </div>
+
+    <select id="statusFilter">
+      <option value="ALL">All Status</option>
+
+      <option value="ACTIVE">Active</option>
+
+      <option value="INACTIVE">Inactive</option>
+    </select>
+  </div>
+
+  <!-- Students Card -->
+  <div class="students-card">
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Student Code</th>
+            <th>Student</th>
+            <th>Phone</th>
+            <th>Username</th>
+            <th>Status</th>
+            <th style="text-align: center;">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody id="studentsTableBody">
+          <tr>
+            <td colspan="6" class="loading-cell">Loading students...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+
+    <div id="emptyState" class="empty-state" style="display: none">
+      <div class="empty-icon">🎓</div>
+
+      <h3>No students found</h3>
+
+      <p>There are no students matching your search.</p>
+
+      <button type="button" class="primary-button" id="openAdmissionButton">
+      + New Admission
+    </button>
+    </div>
+  </div>
+</section>
+<!-- =====================================================
+     NEW ADMISSION MODAL
+===================================================== -->
+
+<div id="admissionModal" class="admission-modal" style="display: none">
+  <div class="admission-modal-overlay"></div>
+
+  <div class="admission-modal-container">
+    <!-- Modal Header -->
+
+    <div class="admission-modal-header">
+      <div>
+        <h2>New Admission</h2>
+
+        <p>Register a new student and parent</p>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close-button"
+        id="closeAdmissionButton"
+      >
+        ×
+      </button>
+    </div>
+
+    <!-- Form -->
+
+    <form id="admissionForm">
+      <div class="admission-modal-body">
+        <!-- =====================================
+                     STUDENT INFORMATION
+                ====================================== -->
+
+        <div class="form-section">
+          <div class="form-section-title">
+            <div class="section-number">1</div>
+
+            <div>
+              <h3>Student Information</h3>
+
+              <p>Enter the student's personal information</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="studentFirstName"> First Name <span>*</span> </label>
+
+              <input
+                type="text"
+                id="studentFirstName"
+                name="studentFirstName"
+                placeholder="Enter first name"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="studentLastName"> Last Name </label>
+
+              <input
+                type="text"
+                id="studentLastName"
+                name="studentLastName"
+                placeholder="Enter last name"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="studentDob"> Date of Birth </label>
+
+              <input type="date" id="studentDob" name="studentDob" />
+            </div>
+
+            <div class="form-group">
+              <label for="studentGender"> Gender </label>
+
+              <select id="studentGender" name="studentGender">
+                <option value="">Select gender</option>
+
+                <option value="Male">Male</option>
+
+                <option value="Female">Female</option>
+
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="studentPhone"> Phone </label>
+
+              <input
+                type="tel"
+                id="studentPhone"
+                name="studentPhone"
+                placeholder="Enter phone number"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="admissionDate"> Admission Date </label>
+
+              <input type="date" id="admissionDate" name="admissionDate" />
+            </div>
+
+            <div class="form-group">
+              <label for="studentStatus"> Status </label>
+
+              <select id="studentStatus" name="studentStatus">
+                <option value="ACTIVE">Active</option>
+
+                <option value="INACTIVE">Inactive</option>
+              </select>
+            </div>
+
+            <div class="form-group form-group-full">
+              <label for="studentAddress"> Address </label>
+
+              <textarea
+                id="studentAddress"
+                name="studentAddress"
+                rows="3"
+                placeholder="Enter student's address"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- =====================================
+                     PARENT INFORMATION
+                ====================================== -->
+
+        <div class="form-section">
+          <div class="form-section-title">
+            <div class="section-number">2</div>
+
+            <div>
+              <h3>Parent / Guardian Information</h3>
+
+              <p>Parent account will be created automatically</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="parentFirstName"> First Name <span>*</span> </label>
+
+              <input
+                type="text"
+                id="parentFirstName"
+                name="parentFirstName"
+                placeholder="Enter parent first name"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="parentLastName"> Last Name </label>
+
+              <input
+                type="text"
+                id="parentLastName"
+                name="parentLastName"
+                placeholder="Enter parent last name"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="parentEmail"> Email <span>*</span> </label>
+
+              <input
+                type="email"
+                id="parentEmail"
+                name="parentEmail"
+                placeholder="Parent's email address"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="parentPhone"> Phone </label>
+
+              <input
+                type="tel"
+                id="parentPhone"
+                name="parentPhone"
+                placeholder="Enter phone number"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="parentRelationship"> Relationship </label>
+
+              <select id="parentRelationship" name="parentRelationship">
+                <option value="">Select relationship</option>
+
+                <option value="Father">Father</option>
+
+                <option value="Mother">Mother</option>
+
+                <option value="Guardian">Guardian</option>
+
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="parentOccupation"> Occupation </label>
+
+              <input
+                type="text"
+                id="parentOccupation"
+                name="parentOccupation"
+                placeholder="Parent occupation"
+              />
+            </div>
+
+            <div class="form-group form-group-full">
+              <label for="parentAddress"> Address </label>
+
+              <textarea
+                id="parentAddress"
+                name="parentAddress"
+                rows="3"
+                placeholder="Enter parent's address"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- =====================================
+                     ACCOUNT INFORMATION
+                ====================================== -->
+
+        <div class="admission-info-box">
+          <strong>Account information</strong>
+
+          <p>
+            Student and parent usernames and temporary passwords will be
+            generated automatically.
+          </p>
+
+          <p>
+            The student code will also be generated automatically based on your
+            institution code.
+          </p>
+        </div>
+
+        <!-- Error -->
+
+        <div
+          id="admissionError"
+          class="admission-error"
+          style="display: none"
+        ></div>
+      </div>
+
+      <!-- Modal Footer -->
+
+      <div class="admission-modal-footer">
+        <button
+          type="button"
+          class="secondary-button"
+          id="cancelAdmissionButton"
+        >
+          Cancel
+        </button>
+
+        <button type="submit" class="primary-button" id="createAdmissionButton">
+          Create Admission
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- =====================================================
+     VIEW STUDENT MODAL
+===================================================== -->
+
+<div id="studentViewModal" class="student-view-modal" style="display: none">
+  <div class="student-view-modal-overlay" id="studentViewModalOverlay"></div>
+
+  <div class="student-view-modal-container">
+    <!-- =====================================================
+             HEADER
+        ===================================================== -->
+
+    <div class="student-view-header">
+      <div>
+        <h2>Student Details</h2>
+
+        <p>View complete student information</p>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close-button"
+        id="closeStudentViewButton"
+      >
+        ×
+      </button>
+    </div>
+
+    <!-- =====================================================
+             LOADING
+        ===================================================== -->
+
+    <div id="studentViewLoading" class="student-view-loading">
+      Loading student information...
+    </div>
+
+    <!-- =====================================================
+             CONTENT
+        ===================================================== -->
+
+    <div
+      id="studentViewContent"
+      class="student-view-content"
+      style="display: none"
+    >
+      <!-- =================================================
+                 STUDENT SUMMARY
+            ================================================= -->
+
+      <div class="student-view-summary">
+        <div class="section-number" >1</div>
+
+        <div class="student-view-summary-info">
+          <h2 id="viewStudentName">-</h2>
+
+          <p id="viewStudentCode">-</p>
+
+          <span id="viewStudentStatus" class="status-badge"> - </span>
+        </div>
+      </div><hr>
+
+      <!-- =================================================
+                 STUDENT INFORMATION
+            ================================================= -->
+
+      <div class="student-info-section">
+        <div class="student-section-title">
+          <div class="section-number" >2</div>
+
+          <div>
+            <h3>Student Information</h3>
+
+            <p>Personal and contact information</p>
+          </div>
+        </div><hr>
+
+        <div class="student-info-grid">
+          <div class="student-info-item">
+            <span> First Name </span>
+
+            <strong id="viewStudentFirstName"> - </strong>
+          </div>
+
+          <div class="student-info-item">
+            <span> Last Name </span>
+
+            <strong id="viewStudentLastName"> - </strong>
+          </div>
+
+          <div class="student-info-item">
+            <span> Date of Birth </span>
+
+            <strong id="viewStudentDob"> - </strong>
+          </div>
+
+          <div class="student-info-item">
+            <span> Gender </span>
+
+            <strong id="viewStudentGender"> - </strong>
+          </div>
+
+          <div class="student-info-item">
+            <span> Phone </span>
+
+            <strong id="viewStudentPhone"> - </strong>
+          </div>
+
+          <div class="student-info-item">
+            <span> Admission Date </span>
+
+            <strong id="viewStudentAdmissionDate"> - </strong>
+          </div>
+
+          <div class="student-info-item student-info-full">
+            <span> Address </span>
+
+            <strong id="viewStudentAddress"> - </strong>
+          </div>
+        </div>
+      </div><hr>
+
+      <!-- =================================================
+                 ACCOUNT INFORMATION
+            ================================================= -->
+
+      <div class="student-info-section">
+        <div class="student-section-title">
+          <div class="section-number" >3</div>
+
+          <div>
+            <h3>Account Information</h3>
+
+            <p>Student login and account details</p>
+          </div>
+        </div><hr>
+
+        <div class="student-info-grid">
+          <div class="student-info-item">
+            <span> Username </span>
+
+            <strong id="viewStudentUsername"> - </strong>
+          </div>
+
+          <div class="student-info-item">
+            <span> Account Status </span>
+
+            <strong id="viewStudentAccountStatus"> - </strong>
+          </div>
+
+          <div class="student-info-item">
+            <span> Last Login </span>
+
+            <strong id="viewStudentLastLogin"> Never </strong>
+          </div>
+
+          <div class="student-info-item">
+            <span> Created At </span>
+
+            <strong id="viewStudentCreatedAt"> - </strong>
+          </div>
+        </div>
+      </div><hr>
+
+      <!-- =================================================
+                 PARENT / GUARDIAN
+            ================================================= -->
+
+      <div class="student-info-section">
+        <div class="student-section-title">
+          <div class="section-number" >4</div>
+
+          <div>
+            <h3>Parent / Guardian</h3>
+
+            <p>Parent or guardian information</p>
+          </div>
+        </div><hr>
+
+        <div class="student-info-grid">
+          <div class="student-info-item">
+            <span> Name </span>
+
+            <strong id="viewParentName"> - </strong>
+          </div>
+
+          <div class="student-info-item">
+            <span> Relationship </span>
+
+            <strong id="viewParentRelationship"> - </strong>
+          </div>
+
+          <div class="student-info-item">
+            <span> Email </span>
+
+            <strong id="viewParentEmail"> - </strong>
+          </div>
+
+          <div class="student-info-item">
+            <span> Phone </span>
+
+            <strong id="viewParentPhone"> - </strong>
+          </div>
+
+          <div class="student-info-item">
+            <span> Occupation </span>
+
+            <strong id="viewParentOccupation"> - </strong>
+          </div>
+
+          <div class="student-info-item student-info-full">
+            <span> Address </span>
+
+            <strong id="viewParentAddress"> - </strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================
+             ERROR
+        ===================================================== -->
+
+    <div
+      id="studentViewError"
+      class="student-view-error"
+      style="display: none"
+    ></div>
+
+    <!-- =====================================================
+             FOOTER
+        ===================================================== -->
+
+    <div class="student-view-footer">
+      <button
+        type="button"
+        class="secondary-button"
+        id="closeStudentViewFooterButton"
+      >
+        Close
+      </button>
+
+      <button
+        type="button"
+        class="primary-button"
+        id="editStudentFromViewButton"
+      >
+        Edit Student
+      </button>
+    </div>
+  </div>
+</div>
+<!-- Student Status Modal -->
+<!-- Student Status Modal -->
+<div id="studentStatusModal" class="status-modal" style="display: none;">
+
+    <div
+        class="status-modal-overlay"
+        id="studentStatusModalOverlay"
+    ></div>
+
+    <div class="status-modal-card">
+
+        <!-- Header -->
+        <div class="status-modal-header">
+
+            <div
+                class="status-modal-icon"
+                id="studentStatusIcon"
+            >
+                ⚠️
+            </div>
+
+            <button
+                type="button"
+                class="status-modal-close"
+                id="closeStudentStatusButton"
+            >
+                &times;
+            </button>
+
+        </div>
+
+        <!-- Content -->
+        <div class="status-modal-content">
+
+            <h2 id="studentStatusTitle">
+                Deactivate Student
+            </h2>
+
+            <p id="studentStatusMessage">
+                Are you sure you want to deactivate this student?
+            </p>
+
+            <p
+                class="status-modal-description"
+                id="studentStatusConfirmText"
+            >
+                Deactivating this student will prevent the student from logging in.
+            </p>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="status-modal-footer">
+
+            <button
+                type="button"
+                class="status-cancel-button"
+                id="cancelStudentStatusButton"
+            >
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="status-confirm-button"
+                id="confirmStudentStatusButton"
+            >
+                Deactivate
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Reset Student Password Modal -->
+<div
+    id="studentResetPasswordModal"
+    class="status-modal"
+    style="display: none;"
+>
+    <div
+        class="status-modal-overlay"
+        id="studentResetPasswordModalOverlay"
+    ></div>
+
+    <div class="status-modal-card">
+
+        <!-- Header -->
+        <div class="status-modal-header">
+
+            <div class="status-modal-icon">
+                🔐
+            </div>
+
+            <button
+                type="button"
+                class="status-modal-close"
+                id="closeStudentResetPasswordButton"
+            >
+                &times;
+            </button>
+
+        </div>
+
+        <!-- Content -->
+        <div class="status-modal-content">
+
+            <h2>Reset Student Password</h2>
+
+            <p>
+                Set a new password for
+                <strong id="studentResetPasswordUsername">
+                    Student
+                </strong>
+            </p>
+
+            <div class="form-group" style="margin-top: 20px; text-align: left;">
+
+                <label for="studentResetPasswordInput">
+                    New Password
+                </label>
+
+                <input
+                    type="password"
+                    id="studentResetPasswordInput"
+                    class="form-input"
+                    placeholder="Enter new password"
+                    autocomplete="new-password"
+                >
+
+                <small>
+                    Password must be at least 8 characters.
+                </small>
+
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="status-modal-footer">
+
+            <button
+                type="button"
+                class="status-cancel-button"
+                id="cancelStudentResetPasswordButton"
+            >
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="status-confirm-button"
+                id="confirmStudentResetPasswordButton"
+            >
+                Reset Password
+            </button>
+
+        </div>
+
+    </div>
+</div>

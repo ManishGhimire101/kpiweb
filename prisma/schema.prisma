@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,21 +7,186 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Program {
-  id        Int      @id @default(autoincrement())
-  name      String
-  details   String?
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
+model Institution {
+  id           Int     @id @default(autoincrement())
+  name         String
+  code         String  @unique
+  type         String?
+  logo         String?
+  email        String?
+  phone        String?
+  address      String?
+  website      String?
+  customDomain String? @unique
+  subdomain    String? @unique
+  themeColor   String  @default("#2563eb")
+  isActive     Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  courses   Course[]
+
+  users    User[]
+  programs Program[]
+  uploads  Upload[]
+
+  studentProfiles StudentProfile[]
+  teacherProfiles TeacherProfile[]
+  parentProfiles  ParentProfile[]
+  adminProfiles   AdminProfile[]
+}
+
+model User {
+  id                 Int       @id @default(autoincrement())
+  institutionId      Int?
+  username           String    @unique
+  email              String?   @unique
+  passwordHash       String
+  role               UserRole
+  isActive           Boolean   @default(true)
+  mustChangePassword Boolean   @default(true)
+  lastLoginAt        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  institution Institution? @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  adminProfile   AdminProfile?
+  studentProfile StudentProfile?
+  teacherProfile TeacherProfile?
+  parentProfile  ParentProfile?
+}
+
+model AdminProfile {
+  id            Int @id @default(autoincrement())
+  userId        Int @unique
+  institutionId Int
+
+  name        String
+  phone       String?
+  designation String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+}
+
+model StudentProfile {
+  id            Int @id @default(autoincrement())
+  userId        Int @unique
+  institutionId Int
+
+  studentCode   String
+  firstName     String
+  lastName      String?
+  dob           DateTime?
+  gender        String?
+  phone         String?
+  address       String?
+  admissionDate DateTime?
+  status        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution    Institution     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  parentStudents ParentStudent[]
+
+  @@unique([institutionId, studentCode])
+}
+
+model TeacherProfile {
+  id            Int @id @default(autoincrement())
+  userId        Int @unique
+  institutionId Int
+
+  employeeCode String
+  firstName    String
+  lastName     String?
+  phone        String?
+  address      String?
+  joiningDate  DateTime?
+  designation  String?
+  status       String?
+
+  themeColor String @default("#2563eb")
+  subdomain  String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@unique([institutionId, employeeCode])
+}
+
+model ParentProfile {
+  id            Int @id @default(autoincrement())
+  userId        Int @unique
+  institutionId Int
+
+  firstName  String
+  lastName   String?
+  phone      String?
+  address    String?
+  occupation String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  students ParentStudent[]
+}
+
+model ParentStudent {
+  id           Int     @id @default(autoincrement())
+  parentId     Int
+  studentId    Int
+  relationship String?
+  isPrimary    Boolean @default(false)
+
+  parent  ParentProfile  @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, studentId])
+}
+
+model Program {
+  id            Int @id @default(autoincrement())
+  institutionId Int
+
+  name    String
+  details String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  courses     Course[]
 }
 
 model Course {
-  id        Int      @id @default(autoincrement())
-  title     String
-  details   String?
-  isFree    Boolean  @default(false)
+  id        Int @id @default(autoincrement())
   programId Int
+
+  title   String
+  details String?
+  isFree  Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -32,14 +194,16 @@ model Course {
 }
 
 model Upload {
-  id        Int      @id @default(autoincrement())
-  category  String
-  title     String?
-  details   String?
-  imageUrl  String
+  id            Int @id @default(autoincrement())
+  institutionId Int
+
+  category String
+  title    String?
+  details  String?
+  imageUrl String
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
 }
-
-
-

@@ -1,0 +1,581 @@
+<div class="institutions-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <h2>Institutions</h2>
+      <p>
+        Manage all institutions registered on MYIMS.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="primary-button"
+      id="addInstitutionButton"
+    >
+      + Add Institution
+    </button>
+
+  </div>
+
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+
+    <div class="search-box">
+      <input
+        type="text"
+        id="institutionSearch"
+        placeholder="Search institutions..."
+      />
+    </div>
+
+    <select id="institutionStatusFilter">
+      <option value="all">All Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+
+  </div>
+
+
+  <!-- INSTITUTIONS TABLE -->
+  <div class="dashboard-section">
+
+    <div class="section-header">
+
+      <div>
+        <h2>All Institutions</h2>
+
+        <p id="institutionCount">
+          Loading institutions...
+        </p>
+      </div>
+
+    </div>
+
+
+    <div class="table-container">
+
+      <table class="data-table">
+
+        <thead>
+          <tr>
+            <th>Institution</th>
+            <th>Code</th>
+            <th>Subdomain</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody id="institutionsTableBody">
+
+          <tr>
+            <td colspan="7" class="table-loading">
+              Loading institutions...
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <!-- ============================= -->
+  <!-- VIEW INSTITUTION MODAL -->
+  <!-- ============================= -->
+
+  <div
+    class="modal-overlay"
+    id="viewInstitutionModal"
+    hidden
+  >
+
+    <div class="modal">
+
+      <div class="modal-header">
+
+        <div>
+          <h2>Institution Details</h2>
+          <p>View institution information</p>
+        </div>
+
+        <button
+          type="button"
+          class="modal-close"
+          data-close-modal="viewInstitutionModal"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div class="modal-body">
+
+        <div class="institution-profile">
+
+          <div
+            class="institution-logo"
+            id="viewInstitutionLogo"
+          >
+            🏫
+          </div>
+
+          <div>
+            <h3 id="viewInstitutionName">
+              -
+            </h3>
+
+            <span id="viewInstitutionCode">
+              -
+            </span>
+          </div>
+
+        </div>
+
+
+        <div class="details-grid">
+
+          <div class="detail-item">
+            <span>Institution Type</span>
+            <strong id="viewInstitutionType">-</strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Email</span>
+            <strong id="viewInstitutionEmail">-</strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Phone</span>
+            <strong id="viewInstitutionPhone">-</strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Status</span>
+            <strong id="viewInstitutionStatus">-</strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Subdomain</span>
+            <strong id="viewInstitutionSubdomain">-</strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Custom Domain</span>
+            <strong id="viewInstitutionDomain">-</strong>
+          </div>
+
+          <div class="detail-item full-width">
+            <span>Address</span>
+            <strong id="viewInstitutionAddress">-</strong>
+          </div>
+
+          <div class="detail-item full-width">
+            <span>Website</span>
+            <strong id="viewInstitutionWebsite">-</strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Created</span>
+            <strong id="viewInstitutionCreated">-</strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Last Updated</span>
+            <strong id="viewInstitutionUpdated">-</strong>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="modal-footer">
+
+        <button
+          type="button"
+          class="secondary-button"
+          data-close-modal="viewInstitutionModal"
+        >
+          Close
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          id="viewEditInstitutionButton"
+        >
+          Edit Institution
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ============================= -->
+  <!-- CREATE / EDIT MODAL -->
+  <!-- ============================= -->
+
+  <div
+    class="modal-overlay"
+    id="institutionFormModal"
+    hidden
+  >
+
+    <div class="modal modal-large">
+
+      <div class="modal-header">
+
+        <div>
+          <h2 id="institutionFormTitle">
+            Create Institution
+          </h2>
+
+          <p id="institutionFormSubtitle">
+            Add a new institution to MYIMS.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="modal-close"
+          data-close-modal="institutionFormModal"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <form id="institutionForm">
+
+        <div class="modal-body">
+
+          <input
+            type="hidden"
+            id="institutionId"
+          />
+
+
+          <!-- BASIC INFORMATION -->
+
+          <div class="form-section">
+
+            <h3>Basic Information</h3>
+
+            <div class="form-grid">
+
+              <div class="form-group">
+                <label for="institutionName">
+                  Institution Name *
+                </label>
+
+                <input
+                  type="text"
+                  id="institutionName"
+                  required
+                  placeholder="Example: ABC College"
+                />
+              </div>
+
+
+              <div class="form-group">
+                <label for="institutionCode">
+                  Institution Code *
+                </label>
+
+                <input
+                  type="text"
+                  id="institutionCode"
+                  required
+                  placeholder="Example: ABC"
+                />
+              </div>
+
+
+              <div class="form-group">
+                <label for="institutionType">
+                  Institution Type
+                </label>
+
+                <input
+                  type="text"
+                  id="institutionType"
+                  placeholder="Example: College"
+                />
+              </div>
+
+
+              <div class="form-group">
+                <label for="institutionEmail">
+                  Email
+                </label>
+
+                <input
+                  type="email"
+                  id="institutionEmail"
+                  placeholder="college@example.com"
+                />
+              </div>
+
+
+              <div class="form-group">
+                <label for="institutionPhone">
+                  Phone
+                </label>
+
+                <input
+                  type="text"
+                  id="institutionPhone"
+                  placeholder="Phone number"
+                />
+              </div>
+
+
+              <div class="form-group full-width">
+                <label for="institutionAddress">
+                  Address
+                </label>
+
+                <textarea
+                  id="institutionAddress"
+                  rows="3"
+                  placeholder="Institution address"
+                ></textarea>
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- DOMAIN -->
+
+          <div class="form-section">
+
+            <h3>Domain & Access</h3>
+
+            <div class="form-grid">
+
+              <div class="form-group">
+
+                <label for="institutionSubdomain">
+                  Subdomain *
+                </label>
+
+                <div class="input-with-suffix">
+
+                  <input
+                    type="text"
+                    id="institutionSubdomain"
+                    required
+                    placeholder="abc"
+                  />
+
+                  <span>
+                    .myims.com
+                  </span>
+
+                </div>
+
+                <small id="institutionDomainPreview">
+                  abc.myims.com
+                </small>
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label for="institutionCustomDomain">
+                  Custom Domain
+                </label>
+
+                <input
+                  type="text"
+                  id="institutionCustomDomain"
+                  placeholder="www.abccollege.edu.np"
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- BRANDING -->
+
+          <div class="form-section">
+
+            <h3>Branding</h3>
+
+            <div class="form-grid">
+
+              <div class="form-group">
+
+                <label for="institutionThemeColor">
+                  Theme Color
+                </label>
+
+                <input
+                  type="color"
+                  id="institutionThemeColor"
+                  value="#2563eb"
+                />
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label for="institutionLogo">
+                  Logo
+                </label>
+
+                <input
+                  type="file"
+                  id="institutionLogo"
+                  accept="image/png,image/jpeg,image/webp"
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- STATUS -->
+
+          <div class="form-section">
+
+            <h3>Status</h3>
+
+            <label class="checkbox-label">
+
+              <input
+                type="checkbox"
+                id="institutionActive"
+                checked
+              />
+
+              <span>
+                Institution is active
+              </span>
+
+            </label>
+
+          </div>
+
+
+          <div
+            id="institutionFormMessage"
+            class="form-message"
+          ></div>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+          <button
+            type="button"
+            class="secondary-button"
+            data-close-modal="institutionFormModal"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            id="saveInstitutionButton"
+          >
+            Create Institution
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+  <!-- ============================= -->
+  <!-- CONFIRM STATUS MODAL -->
+  <!-- ============================= -->
+
+  <div
+    class="modal-overlay"
+    id="statusModal"
+    hidden
+  >
+
+    <div class="modal modal-small">
+
+      <div class="modal-header">
+
+        <h2 id="statusModalTitle">
+          Change Status
+        </h2>
+
+        <button
+          type="button"
+          class="modal-close"
+          data-close-modal="statusModal"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <div class="modal-body">
+
+        <p id="statusModalMessage">
+          Are you sure you want to change this institution's status?
+        </p>
+
+      </div>
+
+      <div class="modal-footer">
+
+        <button
+          type="button"
+          class="secondary-button"
+          data-close-modal="statusModal"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          class="danger-button"
+          id="confirmStatusButton"
+        >
+          Confirm
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

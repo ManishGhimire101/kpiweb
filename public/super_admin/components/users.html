@@ -1,0 +1,586 @@
+<section class="users-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <h2>Users</h2>
+      <p>Manage all users across your institutions.</p>
+    </div>
+
+    <button type="button" class="primary-button" id="addUserButton">
+      + Add User
+    </button>
+
+  </div>
+
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+
+    <div class="search-box">
+
+      <input type="text" id="userSearch" placeholder="Search username or email..." />
+
+    </div>
+
+
+    <select id="userRoleFilter">
+
+      <option value="">All Roles</option>
+      <option value="SUPER_ADMIN">Super Admin</option>
+      <option value="ADMIN">Admin</option>
+      <option value="TEACHER">Teacher</option>
+      <option value="STUDENT">Student</option>
+      <option value="PARENT">Parent</option>
+
+    </select>
+
+
+    <select id="userStatusFilter">
+
+      <option value="">All Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+
+    </select>
+
+
+    <select id="institutionFilter">
+
+      <option value="">
+        All Institutions
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <!-- USERS TABLE -->
+  <div class="table-container">
+
+    <table class="data-table">
+
+      <thead>
+
+        <tr>
+
+          <th>User</th>
+
+          <th>Email</th>
+
+          <th>Role</th>
+
+          <th>Institution</th>
+
+          <th>Status</th>
+
+          <th>Last Login</th>
+
+          <th>Actions</th>
+
+        </tr>
+
+      </thead>
+
+
+      <tbody id="usersTableBody">
+
+        <tr>
+
+          <td colspan="7" class="loading-state">
+            Loading users...
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+
+  <!-- EMPTY STATE -->
+
+  <div id="usersEmptyState" class="empty-state" style="display: none;">
+
+    <h3>
+      No users found
+    </h3>
+
+    <p>
+      There are no users matching your search or filters.
+    </p>
+
+  </div>
+
+
+  <!-- VIEW USER MODAL -->
+  <div class="modal-overlay" id="viewUserModal" hidden>
+
+    <div class="modal modal-user">
+
+      <div id="viewUserModal" class="modal" ">
+
+    <div class=" modal-content">
+
+        <div class="modal-header">
+
+          <div>
+            <h2>User Details</h2>
+            <p>View user information.</p>
+          </div>
+
+          <button type="button" class="modal-close" data-close-modal="viewUserModal">
+            ×
+          </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+          <div class="user-profile-header">
+
+            <div class="user-profile-avatar" id="viewUserAvatar">
+              US
+            </div>
+
+            <div>
+
+              <span id="viewUserUsername">
+                —
+              </span>
+
+              <span id="viewUserRole">
+                —
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="detail-grid">
+
+            <div class="detail-item">
+
+              <span>Username</span>
+
+              <strong id="viewUserUsernameDetail">
+                —
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span>Email</span>
+
+              <strong id="viewUserEmail">
+                —
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span>Role</span>
+
+              <strong id="viewUserRoleDetail">
+                —
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span>Institution</span>
+
+              <strong id="viewUserInstitution">
+                —
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span>Status</span>
+
+              <strong id="viewUserStatus">
+                —
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span>Last Login</span>
+
+              <strong id="viewUserLastLogin">
+                —
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span>Created</span>
+
+              <strong id="viewUserCreated">
+                —
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span>Password Status</span>
+
+              <strong id="viewUserPasswordStatus">
+                —
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <!-- ROLE PROFILE -->
+
+          <div id="viewUserProfileSection" class="profile-section">
+
+            <h3>
+              Profile Information
+            </h3>
+
+            <div id="viewUserProfileData">
+              —
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+          <button type="button" class="secondary-button" data-close-modal="viewUserModal">
+            Close
+          </button>
+
+          <button type="button" class="primary-button" id="editUserFromViewButton">
+            Edit User
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+  </div>
+
+
+  <!-- CREATE / EDIT USER MODAL -->
+  <div class="modal-overlay" id="userFormModal" hidden>
+
+    <div class="modal modal-user">
+
+      <div id="userFormModal" class="modal">
+
+        <div class="modal-content">
+
+          <div class="modal-header">
+
+            <div>
+
+              <h2 id="userFormTitle">
+                Add User
+              </h2>
+
+              <p id="userFormSubtitle">
+                Create a new system user.
+              </p>
+
+            </div>
+
+            <button type="button" class="modal-close" data-close-modal="userFormModal">
+              ×
+            </button>
+
+          </div>
+
+
+          <form id="userForm">
+
+            <div class="modal-body">
+
+              <input type="hidden" id="userId" />
+
+
+              <div class="form-grid">
+
+                <!-- USERNAME -->
+
+                <div class="form-group">
+
+                  <label for="userUsername">
+                    Username *
+                  </label>
+
+                  <input type="text" id="userUsername" required placeholder="Enter username" />
+
+                </div>
+
+
+                <!-- EMAIL -->
+
+                <div class="form-group">
+
+                  <label for="userEmail">
+                    Email
+                  </label>
+
+                  <input type="email" id="userEmail" placeholder="user@example.com" />
+
+                </div>
+
+
+                <!-- ROLE -->
+
+                <div class="form-group">
+
+                  <label for="userRole">
+                    Role *
+                  </label>
+
+                  <select id="userRole" required>
+
+                    <option value="">
+                      Select Role
+                    </option>
+
+                    <option value="ADMIN">
+                      Admin
+                    </option>
+
+                    <option value="TEACHER">
+                      Teacher
+                    </option>
+
+                    <option value="STUDENT">
+                      Student
+                    </option>
+
+                    <option value="PARENT">
+                      Parent
+                    </option>
+
+                  </select>
+
+                </div>
+
+
+                <!-- INSTITUTION -->
+
+                <div class="form-group">
+
+                  <label for="userInstitution">
+                    Institution
+                  </label>
+
+                  <select id="userInstitution">
+
+                    <option value="">
+                      Select Institution
+                    </option>
+
+                  </select>
+
+                </div>
+
+
+                <!-- PASSWORD -->
+
+                <div class="form-group" id="userPasswordGroup">
+
+                  <label for="userPassword">
+                    Password *
+                  </label>
+
+                  <input type="password" id="userPassword" placeholder="Enter password" />
+
+                  <small>
+                    User will be required to change this password.
+                  </small>
+
+                </div>
+
+
+                <!-- ACTIVE -->
+
+                <div class="form-group checkbox-group">
+
+                  <label>
+
+                    <input type="checkbox" id="userIsActive" checked />
+
+                    <span>
+                      Active user
+                    </span>
+
+                  </label>
+
+                </div>
+
+              </div>
+
+
+              <div id="userFormMessage" class="form-message" style="display: none;"></div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+              <button type="button" class="secondary-button" data-close-modal="userFormModal">
+                Cancel
+              </button>
+
+              <button type="submit" class="primary-button" id="saveUserButton">
+                Create User
+              </button>
+
+            </div>
+
+          </form>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- STATUS MODAL -->
+  <div class="modal-overlay" id="userStatusModal" hidden>
+
+    <div id="userStatusModal" class="modal modal-status">
+
+      <div class="modal-content modal-small ">
+
+        <div class="modal-header">
+
+          <h2 id="userStatusTitle">
+            Change User Status
+          </h2>
+
+          <button type="button" class="modal-close" data-close-modal="userStatusModal">
+            ×
+          </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+          <p id="userStatusMessage">
+            Are you sure you want to change this user's status?
+          </p>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+          <button type="button" class="secondary-button" data-close-modal="userStatusModal">
+            Cancel
+          </button>
+
+          <button type="button" class="danger-button" id="confirmUserStatusButton">
+            Confirm
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- RESET PASSWORD MODAL -->
+  <div class="modal-overlay" id="resetPasswordModal" hidden>
+
+    <div id="resetPasswordModal" class="modal modal-status">
+
+      <div class="modal-content modal-small">
+
+        <div class="modal-header">
+
+          <h2>
+            Reset Password
+          </h2>
+
+          <button type="button" class="modal-close" data-close-modal="resetPasswordModal">
+            ×
+          </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+          <p>
+            Reset the password for
+            <strong id="resetPasswordUsername">
+              this user
+            </strong>?
+          </p>
+
+
+          <div class="form-group">
+
+            <label for="resetPasswordInput">
+              New Password
+            </label>
+
+            <input type="password" id="resetPasswordInput" placeholder="Enter new password" />
+
+          </div>
+
+
+          <div id="resetPasswordMessage" class="form-message" style="display: none;"></div>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+          <button type="button" class="secondary-button" data-close-modal="resetPasswordModal">
+            Cancel
+          </button>
+
+          <button type="button" class="primary-button" id="confirmResetPasswordButton">
+            Reset Password
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+
+</section>
