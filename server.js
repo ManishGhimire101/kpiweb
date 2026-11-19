@@ -1,4 +1,7 @@
 const express = require("express");
+
+// Use process.cwd() for Docker compatibility (WORKDIR /app)
+const ROOT_DIR = process.cwd();
 const session = require("express-session");
 const path = require("path");
 require("dotenv").config();
