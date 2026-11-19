@@ -1,0 +1,19 @@
+<div class="transfer-card-backdrop" id="transferCardBackdrop" hidden></div>
+<section class="transfer-card" id="studentTransferCard" aria-labelledby="transferCardTitle" hidden>
+  <div class="transfer-card-header">
+    <div><span class="transfer-eyebrow">STUDENT SERVICES</span><h2 id="transferCardTitle">Transfer student</h2><p id="transferStudentLabel">Choose a receiving institution to request a transfer.</p></div>
+    <button type="button" class="transfer-card-close" id="closeTransferCard" aria-label="Close transfer card">×</button>
+  </div>
+  <div class="transfer-card-body">
+    <div class="transfer-steps"><span class="transfer-step-active"><i>1</i><b>Choose institution</b></span><span><i>2</i><b>Send request</b></span><span><i>3</i><b>Await acceptance</b></span></div>
+    <label class="transfer-field-label" for="transferInstitutionSearch">Search receiving institution</label>
+    <input type="search" id="transferInstitutionSearch" class="transfer-institution-search" placeholder="Search by institution name or code…" autocomplete="off">
+    <div id="transferInstitutionResults" class="transfer-institution-results" role="listbox" aria-label="Available institutions" hidden></div>
+    <div id="selectedTransferInstitution" class="selected-transfer-institution" hidden></div>
+    <label class="transfer-field-label" for="transferRequestNote">Message to receiving institution <span>Optional</span></label>
+    <textarea id="transferRequestNote" rows="3" maxlength="1000" placeholder="Add a reason or any useful information about this transfer…"></textarea>
+    <div class="transfer-info-box"><strong>What happens after you send the request?</strong><ul><li>The receiving institution reviews the student's profile and parent/guardian details.</li><li>The student account and password are retained when the request is accepted.</li><li>Academic records remain preserved with the transfer history from the sending institution.</li><li>The student is placed into a class by the receiving institution after acceptance.</li></ul></div>
+    <div class="transfer-card-message" id="transferCardMessage" role="status" hidden></div>
+  </div>
+  <div class="transfer-card-footer"><button type="button" class="secondary-button" id="cancelTransferCard">Cancel</button><button type="button" class="primary-button" id="submitTransferRequest" disabled>Send transfer request</button></div>
+</section>

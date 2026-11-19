@@ -158,6 +158,11 @@ app.get("/teacher", institutionOnly, page("portal", "teacher.html"));
 app.get("/student", institutionOnly, page("portal", "student.html"));
 app.get("/parent", institutionOnly, page("portal", "parent.html"));
 
+// Tenant-specific routes
+app.get("/tenant/:subdomain/login", institutionOnly, page("portal", "login.html"));
+app.get("/tenant/:subdomain/forgot-password", institutionOnly, page("portal", "forgot-password.html"));
+app.get("/tenant/:subdomain/admin/forget-password", institutionOnly, page("portal", "forgot-password.html"));
+
 app.get(
   [
     "/admin",

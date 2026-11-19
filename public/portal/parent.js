@@ -24,10 +24,12 @@
 
   async function childDetail(view, id) {
     const c = (await api(`/api/parent/children/${id}/overview`)).data;
+    c.fees = null;
     const s = c.attendanceSummary;
     let section = "homework";
 
     function body() {
+      if (section === "fees" && !c.fees) return '<div class="empty">Loading fee bills...</div>';
       if (section === "homework") {
         return c.homework.length
           ? `<div class="table-wrap"><table class="table"><thead><tr><th>Homework</th><th>Due</th><th>Status</th><th>Grade</th></tr></thead><tbody>
@@ -48,6 +50,13 @@
           : '<div class="empty">No attendance recorded yet.</div>';
       }
 
+      if (section === "fees") {
+        return c.fees.length
+          ? `<div class="table-wrap"><table class="table"><thead><tr><th>Bill</th><th>Charges</th><th>Period</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+          ${c.fees.map((f) => `<tr><td><strong>${esc(f.title)}</strong><div class="muted small">${esc(f.studentName)}</div></td><td>${(Array.isArray(f.lines)?f.lines:[]).map(line=>`${esc(line.heading)}: NPR ${money(line.amount)}`).join("<br>")}</td><td>${esc(f.period)} · ${esc(f.academicYear)}</td><td>NPR ${money(f.totalAmount)}</td><td>NPR ${money(f.paidAmount)}</td><td><strong>NPR ${money(f.balance)}</strong></td><td>${badge(f.status)}</td><td>${f.balance > 0 ? `<button class="btn small" data-pay="${f.id}">Pay with Khalti</button>` : ""} ${f.paidAmount > 0 ? `<button class="btn small secondary" data-receipt="${f.id}">Download receipt</button>` : ""}</td></tr>`).join("")}</tbody></table></div>`
+          : '<div class="empty">No fee bills issued for this student yet.</div>';
+      }
+
       return c.resources.length
         ? c.resources
             .map(
@@ -55,6 +64,13 @@
             )
             .join("")
         : '<div class="empty">No resources shared yet.</div>';
+    }
+
+    function money(value) { return Number(value || 0).toLocaleString(); }
+
+    async function loadFees() {
+      const all = (await api("/api/fees/bills")).data;
+      return all.filter((fee) => fee.studentId === Number(id));
     }
 
     function draw() {
@@ -67,7 +83,7 @@
           <div class="stat"><span>Absent</span><strong>${s.ABSENT}</strong></div>
         </div>
         <div class="toolbar">
-          ${[["homework", "Homework"], ["attendance", "Attendance"], ["resources", "Resources"]]
+          ${[["homework", "Homework"], ["attendance", "Attendance"], ["resources", "Resources"], ["fees", "Fees"]]
             .map(([k, l]) => `<button class="btn small ${section === k ? "" : "secondary"}" data-sec="${k}">${l}</button>`)
             .join("")}
         </div>
@@ -77,11 +93,25 @@
       view.querySelectorAll("[data-sec]").forEach((b) =>
         b.addEventListener("click", () => {
           section = b.dataset.sec;
-          draw();
+          if (section === "fees") { c.fees = null; draw(); loadFees().then((fees) => { c.fees = fees; draw(); }).catch((error) => { c.fees = []; toast(error.message, "error"); draw(); }); }
+          else draw();
         }),
       );
+      view.querySelectorAll("[data-pay]").forEach((button) => button.addEventListener("click", async () => {
+        try {
+          const result = await api(`/api/fees/bills/${button.dataset.pay}/khalti/initiate`, { method: "POST" });
+          window.sessionStorage.setItem("feeReturnPending", "1");
+          window.location.assign(result.data.paymentUrl);
+        } catch (error) { toast(error.message, "error"); }
+      }));
+      view.querySelectorAll("[data-receipt]").forEach((button) => button.addEventListener("click", () => Portal.download(Portal.withTenant(`/api/fees/bills/${button.dataset.receipt}/receipt`), `fee-receipt-${button.dataset.receipt}.pdf`)));
     }
 
+    if (location.hash === "#fees" && window.sessionStorage.getItem("feeReturnPending") === "1") {
+      window.sessionStorage.removeItem("feeReturnPending");
+      section = "fees";
+      c.fees = await loadFees();
+    }
     draw();
   }
 

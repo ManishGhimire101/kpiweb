@@ -12,6 +12,38 @@ async function loadComponent(targetId, url) {
   }
 }
 
+function setupMobileNavigation() {
+  const nav = document.querySelector('.navbar');
+  const toggle = nav?.querySelector('.nav-toggle');
+  const menu = nav?.querySelector('.menu');
+  const backdrop = document.querySelector('.nav-backdrop');
+  if (!nav || !toggle || !menu) return;
+
+  const closeMenu = () => {
+    nav.classList.remove('menu-open');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Open navigation menu');
+    const icon = toggle.querySelector('i');
+    if (icon) icon.className = 'fa-solid fa-bars';
+  };
+
+  if (window.innerWidth <= 520) closeMenu();
+
+  toggle.addEventListener('click', () => {
+    const isOpen = nav.classList.toggle('menu-open');
+    toggle.setAttribute('aria-expanded', String(isOpen));
+    toggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+    const icon = toggle.querySelector('i');
+    if (icon) icon.className = isOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+  });
+
+  menu.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+  backdrop?.addEventListener('click', closeMenu);
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeMenu();
+  });
+}
+
 window.siteBranding = fetch('/api/config')
   .then((r) => r.json())
   .then((c) => (c && c.institution ? c : null))
@@ -134,11 +166,13 @@ function brandFooter(inst) {
 }
 
 loadComponent('navbar-root', '/component/nav.html').then(async () => {
+  setupMobileNavigation();
   const b = await window.siteBranding;
   if (b) {
     applyTheme(b.institution);
     brandNav(b.institution);
   }
+  loadRecentNotices();
 });
 
 loadComponent('footer-root', '/component/footer.html').then(async () => {
@@ -207,7 +241,7 @@ async function loadNotices() {
     list.innerHTML = data
       .map(
         (n) => `
-          <article class="notice-card">
+          <article class="notice-card" id="notice-${encodeURIComponent(n.id)}">
             ${n.imageUrl ? `<img src="${escapeHtml(n.imageUrl)}" alt="${escapeHtml(n.title || 'Notice image')}" class="notice-image" />` : ''}
             <h3 class="notice-title">${escapeHtml(n.title || 'Notice')}</h3>
             <div class="notice-date">${formatDate(n.createdAt)}</div>
@@ -216,8 +250,51 @@ async function loadNotices() {
         `
       )
       .join('');
+
+    const targetId = decodeURIComponent(location.hash.slice(1));
+    if (targetId) {
+      document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   } catch (_) {
     list.innerHTML = '<p>Failed to load notices.</p>';
+  }
+}
+
+async function loadRecentNotices() {
+  const list = document.getElementById('recentNoticesList');
+  const mobileMarquee = document.getElementById('mobileNoticeMarquee');
+  if (!list && !mobileMarquee) return;
+
+  try {
+    const data = await fetchUploads('notices');
+    const notices = Array.isArray(data)
+      ? [...data].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 3)
+      : [];
+
+    if (!notices.length) {
+      if (list) list.innerHTML = '<p class="empty-message">No recent notices available.</p>';
+      if (mobileMarquee) mobileMarquee.querySelector('.mobile-notice-track').innerHTML = '<span>No recent notices available</span>';
+      return;
+    }
+
+    const markup = `<div class="notice-marquee" role="region" aria-label="Recent notices">
+      <div class="notice-marquee-track">
+        ${notices.concat(notices).map((notice) => `
+          <a class="notice-highlight" href="/notice#notice-${encodeURIComponent(notice.id)}">
+            <span class="recent-notice-icon" aria-hidden="true"><i class="fa-solid fa-bullhorn"></i></span>
+            <span class="notice-highlight-text"><strong>${escapeHtml(notice.title || 'Notice')}</strong><small>${escapeHtml(formatDate(notice.createdAt))}</small></span>
+          </a>
+        `).join('')}
+      </div>
+    </div>`;
+    if (list) list.innerHTML = markup;
+    if (mobileMarquee) {
+      const titles = notices.concat(notices).map((notice) => `<a href="/notice#notice-${encodeURIComponent(notice.id)}">${escapeHtml(notice.title || 'Recent notice')}</a>`).join('');
+      mobileMarquee.querySelector('.mobile-notice-track').innerHTML = titles;
+    }
+  } catch (_) {
+    if (list) list.innerHTML = '<p class="error-message">Failed to load recent notices.</p>';
+    if (mobileMarquee) mobileMarquee.querySelector('.mobile-notice-track').innerHTML = '<span>Unable to load recent notices</span>';
   }
 }
 

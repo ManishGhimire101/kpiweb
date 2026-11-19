@@ -1,4 +1,9 @@
 const express = require("express");
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+const multer = require("multer");
+const PDFDocument = require("pdfkit");
 const { generateTemporaryPassword } = require("../../lib/passwords");
 const bcrypt = require("bcrypt");
 
@@ -8,7 +13,33 @@ const requireAdmin = require("../../middleware/admin");
 const prisma = require("../../lib/prisma");
 const router = express.Router();
 
-router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
+const PHOTO_ROOT = path.join(__dirname, "..", "..", "public", "uploads");
+const photoUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = path.join(PHOTO_ROOT, String(req.user.institutionId), "students");
+      fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => cb(null, `${crypto.randomBytes(12).toString("hex")}${path.extname(file.originalname).toLowerCase()}`),
+  }),
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+  fileFilter: (req, file, cb) => {
+    if (![".jpg", ".jpeg", ".png", ".webp"].includes(path.extname(file.originalname).toLowerCase())) {
+      return cb(new Error("Student photo must be JPG, PNG or WEBP"));
+    }
+    cb(null, true);
+  },
+}).single("studentPhoto");
+
+function handlePhotoUpload(req, res, next) {
+  photoUpload(req, res, (error) => {
+    if (!error) return next();
+    return res.status(400).json({ success: false, message: error.code === "LIMIT_FILE_SIZE" ? "Student photo must be 5MB or smaller" : error.message });
+  });
+}
+
+router.post("/admission", authenticateToken, requireAdmin, handlePhotoUpload, async (req, res) => {
   try {
     const institutionId = req.user.institutionId;
 
@@ -19,7 +50,8 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
       });
     }
 
-    const { student, parent } = req.body;
+    const student = typeof req.body.student === "string" ? JSON.parse(req.body.student) : req.body.student;
+    const parent = typeof req.body.parent === "string" ? JSON.parse(req.body.parent) : req.body.parent;
 
     if (!student || !student.firstName) {
       return res.status(400).json({
@@ -62,6 +94,18 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
     }
 
     const parentEmail = String(parent.email).trim().toLowerCase();
+
+    const programId = student.programId ? Number(student.programId) : null;
+    const courseId = student.courseId ? Number(student.courseId) : null;
+    if ((student.programId && (!Number.isInteger(programId) || programId <= 0)) || (student.courseId && (!Number.isInteger(courseId) || courseId <= 0))) {
+      return res.status(400).json({ success: false, message: "Select a valid program and course" });
+    }
+    if (programId && !await prisma.program.findFirst({ where: { id: programId, institutionId } })) {
+      return res.status(400).json({ success: false, message: "Selected program was not found for this institution" });
+    }
+    if (courseId && (!programId || !await prisma.course.findFirst({ where: { id: courseId, programId } }))) {
+      return res.status(400).json({ success: false, message: "Selected course does not belong to the chosen program" });
+    }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentEmail)) {
       return res.status(400).json({
@@ -151,6 +195,8 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
 
           firstName: student.firstName.trim(),
 
+          photo: req.file ? `/uploads/${institutionId}/students/${req.file.filename}` : null,
+
           lastName: student.lastName ? student.lastName.trim() : null,
 
           dob: student.dob ? new Date(student.dob) : null,
@@ -166,6 +212,9 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
             : new Date(),
 
           status: student.status || "ACTIVE",
+
+          programId,
+          courseId,
         },
       });
 
@@ -301,6 +350,27 @@ router.post("/admission", authenticateToken, requireAdmin, async (req, res) => {
 });
 
 
+router.get("/download", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const students = await prisma.studentProfile.findMany({
+      where: { institutionId: req.user.institutionId },
+      include: { user: { select: { username: true, email: true, isActive: true } } },
+      orderBy: { studentCode: "asc" },
+    });
+    const csvValue = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+    const rows = [
+      ["Student Code", "First Name", "Last Name", "Date of Birth", "Gender", "Phone", "Address", "Admission Date", "Status", "Username", "Email", "Account Active", "Photo URL"],
+      ...students.map((s) => [s.studentCode, s.firstName, s.lastName, s.dob?.toISOString().slice(0, 10), s.gender, s.phone, s.address, s.admissionDate?.toISOString().slice(0, 10), s.status, s.user.username, s.user.email, s.user.isActive ? "Yes" : "No", s.photo]),
+    ];
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="students-${new Date().toISOString().slice(0, 10)}.csv"`);
+    res.send("\ufeff" + rows.map((row) => row.map(csvValue).join(",")).join("\r\n"));
+  } catch (error) {
+    console.error("Download students error:", error);
+    res.status(500).json({ success: false, message: "Failed to download student data" });
+  }
+});
+
 router.get("/", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const institutionId = req.user.institutionId;
@@ -338,6 +408,11 @@ router.get("/", authenticateToken, requireAdmin, async (req, res) => {
       message: "Failed to load students",
     });
   }
+});
+
+// This two-segment route is explicitly registered before student detail routes.
+router.get("/:id/pdf", authenticateToken, requireAdmin, async (req, res) => {
+  return generateStudentPdf(req, res);
 });
 
 router.get("/:id", authenticateToken, requireAdmin, async (req, res) => {
@@ -408,6 +483,84 @@ router.get("/:id", authenticateToken, requireAdmin, async (req, res) => {
     });
   }
 });
+
+async function generateStudentPdf(req, res) {
+  try {
+    const studentId = Number(req.params.id);
+    const student = await prisma.studentProfile.findFirst({
+      where: { id: studentId, institutionId: req.user.institutionId },
+      include: {
+        user: { select: { username: true, email: true, isActive: true, createdAt: true } },
+        parentStudents: {
+          where: { isPrimary: true },
+          take: 1,
+          include: { parent: { include: { user: { select: { email: true, username: true } } } } },
+        },
+        institution: { select: { name: true, address: true, phone: true, email: true } },
+      },
+    });
+
+    if (!student) return res.status(404).json({ success: false, message: "Student not found" });
+
+    const parent = student.parentStudents[0]?.parent;
+    const doc = new PDFDocument({ margin: 48, size: "A4" });
+    const filename = `${student.studentCode}-profile.pdf`;
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    doc.pipe(res);
+
+    const text = (label, value) => {
+      doc.font("Helvetica-Bold").text(`${label}: `, { continued: true });
+      doc.font("Helvetica").text(value || "-");
+    };
+    doc.fontSize(18).font("Helvetica-Bold").text(student.institution.name, { align: "center" });
+    doc.fontSize(10).font("Helvetica").text(student.institution.address || "", { align: "center" });
+    doc.moveDown().fontSize(16).font("Helvetica-Bold").text("Student Profile", { align: "center" });
+    doc.moveDown();
+
+    if (student.photo) {
+      const photoRelativePath = student.photo.replace(`/uploads/${req.user.institutionId}/`, "");
+      const photoPath = path.resolve(PHOTO_ROOT, String(req.user.institutionId), photoRelativePath);
+      const photoExtension = path.extname(photoPath).toLowerCase();
+      const institutionPhotoRoot = path.resolve(PHOTO_ROOT, String(req.user.institutionId)) + path.sep;
+      if ([".jpg", ".jpeg", ".png"].includes(photoExtension) && photoPath.startsWith(institutionPhotoRoot) && fs.existsSync(photoPath)) {
+        try {
+          doc.image(photoPath, 430, 125, { fit: [115, 135], align: "center" });
+        } catch (photoError) {
+          console.warn("Student photo omitted from PDF:", photoError.message);
+        }
+      }
+    }
+
+    text("Student Code", student.studentCode);
+    text("Name", `${student.firstName} ${student.lastName || ""}`.trim());
+    text("Date of Birth", student.dob ? student.dob.toISOString().slice(0, 10) : "-");
+    text("Gender", student.gender);
+    text("Phone", student.phone);
+    text("Address", student.address);
+    text("Admission Date", student.admissionDate ? student.admissionDate.toISOString().slice(0, 10) : "-");
+    text("Status", student.status);
+    doc.moveDown().fontSize(13).font("Helvetica-Bold").text("Student Account");
+    doc.moveDown(0.4).fontSize(10);
+    text("Username", student.user.username);
+    text("Email", student.user.email);
+    text("Account Active", student.user.isActive ? "Yes" : "No");
+
+    doc.moveDown().fontSize(13).font("Helvetica-Bold").text("Parent / Guardian");
+    doc.moveDown(0.4).fontSize(10);
+    text("Name", parent ? `${parent.firstName} ${parent.lastName || ""}`.trim() : "-");
+    text("Relationship", student.parentStudents[0]?.relationship);
+    text("Email", parent?.user?.email);
+    text("Phone", parent?.phone);
+    text("Address", parent?.address);
+    text("Occupation", parent?.occupation);
+    doc.end();
+  } catch (error) {
+    console.error("Student PDF error:", error);
+    if (!res.headersSent) return res.status(500).json({ success: false, message: error.message || "Failed to create student PDF" });
+    res.destroy(error);
+  }
+}
 
 router.put("/:id", authenticateToken, requireAdmin, async (req, res) => {
   try {

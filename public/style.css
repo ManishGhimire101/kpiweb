@@ -14,11 +14,41 @@ body{
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+.nav-backdrop{
+    display: none;
+}
+
+.navbar-inner{
+    width: 100%;
+    height: 100%;
+}
+
+.nav-toggle{
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 46px;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.mobile-notice-marquee{
+    display: none;
+}
+
 .menu{
     list-style: none;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: row;
+    gap: 2px;
+    padding: 0 12px;
 }
 
 .menu > li{
@@ -27,10 +57,11 @@ body{
 
 .menu > li > a{
     display: block;
-    padding: 16px 20px;
+    padding: 16px 18px;
     color: #fff;
     text-decoration: none;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .menu > li > a:hover{
@@ -48,6 +79,7 @@ body{
     justify-content: space-between;
     gap: 20px;
     padding: 14px 18px;
+    min-width: 0;
     box-shadow: 0 8px 24px rgba(0, 31, 91, 0.08);
 }
 
@@ -85,6 +117,7 @@ body{
     line-height: 1.2;
     color: var(--brand-primary, #001f5b);
     text-transform: capitalize;
+    overflow-wrap: anywhere;
 }
 
 .brand-text p{
@@ -92,6 +125,7 @@ body{
     font-size: 14px;
     color: #475569;
     text-transform: capitalize;
+    overflow-wrap: anywhere;
 }
 
 .brand-actions{
@@ -242,6 +276,126 @@ body{
 .faculty-section{
     padding: 56px 18px 64px;
     background: linear-gradient(180deg, #f4f7fc 0%, #eaf1ff 100%);
+}
+
+.recent-notices-section{
+    padding: 34px 18px 38px;
+    background: #ffffff;
+    border-bottom: 1px solid #dbe5ff;
+    overflow: hidden;
+}
+
+.recent-notices-container{
+    width: min(1150px, 100%);
+    margin: 0 auto;
+}
+
+.recent-notices-heading{
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.section-kicker{
+    color: var(--brand-secondary, #0b3d91);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.recent-notices-heading h2{
+    color: var(--brand-primary, #001f5b);
+    font-size: clamp(1.5rem, 2.4vw, 2rem);
+    margin-top: 4px;
+}
+
+.recent-notices-link,
+.recent-notice-read{
+    color: var(--brand-secondary, #0b3d91);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.recent-notices-link:hover,
+.recent-notice-read:hover{
+    text-decoration: underline;
+}
+
+.recent-notices-grid{
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid #d8e4ff;
+    border-radius: 14px;
+    background: #f8faff;
+}
+
+.notice-marquee{
+    overflow: hidden;
+    width: 100%;
+}
+
+.notice-marquee-track{
+    display: flex;
+    width: max-content;
+    animation: notice-marquee-scroll 24s linear infinite;
+}
+
+.notice-marquee:hover .notice-marquee-track,
+.notice-marquee:focus-within .notice-marquee-track{
+    animation-play-state: paused;
+}
+
+.notice-highlight{
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    width: min(330px, 82vw);
+    flex: 0 0 min(330px, 82vw);
+    padding: 16px;
+    border-right: 1px solid #d8e4ff;
+    color: inherit;
+    text-decoration: none;
+}
+
+.recent-notice-icon{
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: var(--brand-primary, #001f5b);
+    color: #fff;
+}
+
+.notice-highlight-text{
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+}
+
+.notice-highlight strong{
+    color: var(--brand-primary, #001f5b);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.notice-highlight small{
+    color: #64748b;
+    font-size: 12px;
+}
+
+@keyframes notice-marquee-scroll{
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce){
+    .notice-marquee-track{ animation: none; }
 }
 
 .faculty-container{
@@ -836,17 +990,19 @@ body{
 }
 
 @media (max-width: 900px){
-    .menu{
-        flex-wrap: wrap;
-    }
-
     .brand-strip{
         flex-direction: column;
         align-items: flex-start;
+        padding: 12px 14px;
     }
 
     .brand-text h1{
         font-size: 20px;
+    }
+
+    .brand-actions {
+        width: 100%;
+        justify-content: flex-start;
     }
 
     .faculty-grid{
@@ -891,9 +1047,120 @@ body{
 }
 
 @media (max-width: 520px){
-    .menu > li > a{
-        padding: 12px 14px;
+    body{
+        padding-left: 0;
+        padding-top: 54px;
+    }
+
+    .navbar{
+        position: fixed;
+        inset: 0 0 auto 0;
+        width: 100%;
+        height: 54px;
+        border-radius: 0 0 12px 12px;
+        z-index: 1000;
+        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.25);
+    }
+
+    .navbar.menu-open{
+        width: min(320px, calc(100vw - 24px));
+        height: 100vh;
+        max-height: none;
+        border-radius: 0 16px 16px 0;
+        overflow-y: auto;
+    }
+
+    .navbar.menu-open + .nav-backdrop{
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+    }
+
+    .nav-toggle{
+        display: flex;
+        width: 54px;
+        margin-left: 8px;
+        min-height: 54px;
+        border-radius: 10px;
+        outline: none;
+        box-shadow: none;
+    }
+
+    .nav-toggle:focus,
+    .nav-toggle:focus-visible{
+        outline: 2px solid rgba(255, 255, 255, 0.85);
+        outline-offset: -4px;
+    }
+
+    .mobile-notice-marquee{
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 70px;
+        right: 12px;
+        height: 54px;
+        overflow: hidden;
+        color: #fff;
+        line-height: 54px;
+        white-space: nowrap;
+    }
+
+    .mobile-notice-track{
+        display: inline-flex;
+        min-width: max-content;
+        gap: 48px;
+        animation: mobile-notice-scroll 22s linear infinite;
+    }
+
+    .mobile-notice-track span{
         font-size: 14px;
+        font-weight: 700;
+    }
+
+    .mobile-notice-track a{
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    @keyframes mobile-notice-scroll{
+        from { transform: translateX(100%); }
+        to { transform: translateX(-100%); }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+        .mobile-notice-track{ animation: none; }
+    }
+
+    .menu{
+        display: none;
+        padding: 0 8px 8px;
+        justify-content: flex-start;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 2px;
+    }
+
+    .navbar.menu-open .menu{
+        display: flex;
+    }
+
+    .menu > li > a{
+        padding: 12px 13px;
+        font-size: 14px;
+        white-space: nowrap;
+        border-radius: 6px;
+    }
+
+    .navbar.menu-open .menu{
+        padding: 8px 12px 14px;
     }
 
     .hero-slider{
@@ -911,6 +1178,14 @@ body{
         max-width: 90%;
     }
 
+    .slider-btn.prev{
+        left: 10px;
+    }
+
+    .slider-btn.next{
+        right: 10px;
+    }
+
     .slide-content p{
         font-size: 0.92rem;
         line-height: 1.45;
@@ -920,6 +1195,15 @@ body{
         width: 52px;
         height: 52px;
         font-size: 18px;
+    }
+
+    .brand-left{
+        width: 100%;
+        align-items: flex-start;
+    }
+
+    .brand-text{
+        min-width: 0;
     }
 
     .brand-text h1{
@@ -942,6 +1226,40 @@ body{
 
     .site-footer{
         padding: 36px 14px;
+    }
+
+    .faculty-section,
+    .gallery-section{
+        padding: 40px 14px 48px;
+    }
+
+    .recent-notices-section{
+        padding: 30px 14px 36px;
+    }
+
+    .recent-notices-heading{
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .recent-notices-grid{
+        display: block;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .notice-highlight{
+        width: min(280px, calc(100vw - 56px));
+        flex-basis: min(280px, calc(100vw - 56px));
+    }
+
+    .courses-section{
+        padding: 12px 14px 48px;
+    }
+
+    .faculty-card,
+    .course-card{
+        padding: 18px;
     }
 }
 

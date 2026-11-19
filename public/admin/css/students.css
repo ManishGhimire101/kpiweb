@@ -1,3 +1,85 @@
+.transfer-page-info { margin-top: 18px; }
+.transfer-card-backdrop[hidden], .transfer-card[hidden] { display: none !important; }
+.transfer-panel-heading p{margin:6px 0 16px;color:#64748b}
+.transfer-student-results{display:grid;gap:8px;margin-top:12px}
+.transfer-student-result{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 14px;border:1px solid #e2e8f0;border-radius:10px;background:#fff}
+.transfer-student-result>div{display:grid;gap:4px;min-width:0}
+.transfer-student-result strong{color:#172033}
+.transfer-student-result span{color:#64748b;font-size:13px}
+@media(max-width:560px){.transfer-student-result{align-items:flex-start;flex-direction:column}}
+.transfer-card-backdrop { position: fixed; inset: 0; z-index: 1000; background: rgba(15, 23, 42, .52); backdrop-filter: blur(3px); }
+.transfer-card { position: fixed; z-index: 1001; inset: 50% auto auto 50%; transform: translate(-50%, -50%); width: min(690px, calc(100vw - 28px)); max-height: min(92vh, 880px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #d1d5db; border-radius: 16px; background: #fff; box-shadow: 0 28px 80px rgba(15, 23, 42, .24); }
+.transfer-card-header { display: flex; justify-content: space-between; gap: 18px; padding: 27px 30px 21px; border-bottom: 1px solid #e5e7eb; }
+.transfer-card-header h2 { margin: 6px 0; color: #111827; font-size: 28px; }
+.transfer-card-header p { margin: 0; color: #4b5563; font-size: 16px; }
+.transfer-eyebrow { color: #111827; font-size: 11px; font-weight: 800; letter-spacing: .13em; }
+.transfer-card-close { width: 36px; height: 36px; border: 0; border-radius: 10px; background: #f1f5f9; color: #334155; font-size: 25px; cursor: pointer; }
+.transfer-card-body { padding: 22px 30px; overflow-y: auto; }
+.transfer-steps { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 25px; color: #6b7280; font-size: 13px; }
+.transfer-steps span { display: flex; align-items: center; gap: 9px; }
+.transfer-steps span > b { font-weight: 600; }
+.transfer-steps i { display: grid; width: 26px; height: 26px; place-items: center; border: 1px solid #d1d5db; border-radius: 50%; background: #f9fafb; color: #374151; font-size: 12px; font-style: normal; font-weight: 700; }
+.transfer-steps span:first-child { color: #111827; }
+.transfer-steps span:first-child i { border-color: #111827; background: #111827; color: #fff; }
+.transfer-field-label { display: block; margin: 17px 0 9px; color: #1f2937; font-size: 15px; font-weight: 700; }
+.transfer-field-label span { margin-left: 5px; color: #6b7280; font-size: 13px; font-weight: 400; }
+.transfer-institution-search, #transferRequestNote { box-sizing: border-box; width: 100%; border: 1px solid #9ca3af; border-radius: 9px; padding: 13px 15px; color: #111827; font: inherit; font-size: 16px; outline: none; }
+.transfer-institution-search:focus, #transferRequestNote:focus { border-color: #111827; box-shadow: 0 0 0 3px rgba(17, 24, 39, .1); }
+.transfer-institution-results[hidden] { display: none; }
+.transfer-institution-results { display: grid; gap: 8px; max-height: 245px; overflow-y: auto; margin-top: 10px; }
+.transfer-institution-option { display: flex; width: 100%; align-items: center; gap: 12px; padding: 13px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; text-align: left; cursor: pointer; }
+.transfer-institution-option:hover { border-color: #6b7280; background: #f9fafb; }
+.transfer-institution-avatar { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: 12px; background: #dbeafe; color: #1d4ed8; font-size: 12px; font-weight: 800; }
+.transfer-institution-logo { object-fit: contain; padding: 3px; box-sizing: border-box; background: #fff; }
+.transfer-institution-details { display: grid; min-width: 0; gap: 4px; }
+.transfer-institution-details strong { color: #111827; font-size: 15px; }
+.transfer-institution-details span { overflow-wrap: anywhere; color: #4b5563; font-size: 13px; }
+.transfer-option-check { margin-left: auto; color: #111827; font-size: 22px; font-weight: 700; }
+.transfer-institution-empty { padding: 18px 10px; color: #4b5563; font-size: 14px; text-align: center; }
+.selected-transfer-institution { display: grid; gap: 12px; margin-top: 10px; padding: 16px; border: 1px solid #d1d5db; border-radius: 11px; background: #f9fafb; }
+.selected-institution-heading { display: flex; align-items: center; gap: 12px; }
+.selected-institution-heading > img, .selected-institution-monogram { display: grid; width: 46px; height: 46px; flex: 0 0 46px; place-items: center; border-radius: 10px; background: #e5e7eb; object-fit: contain; color: #111827; font-size: 13px; font-weight: 800; }
+.selected-institution-heading > div { display: grid; min-width: 0; gap: 4px; }
+.selected-institution-heading strong { color: #111827; font-size: 17px; }
+.selected-institution-heading span { color: #4b5563; font-size: 13px; }
+.change-transfer-institution { margin-left: auto; border: 0; background: transparent; color: #111827; font-size: 14px; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.selected-institution-info { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; border-top: 1px solid #e5e7eb; padding-top: 12px; }
+.selected-institution-info span { display: grid; min-width: 0; gap: 3px; overflow-wrap: anywhere; color: #374151; font-size: 14px; }
+.selected-institution-info b { color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+.transfer-info-box { margin-top: 18px; padding: 16px 18px; border: 1px solid #d1d5db; border-radius: 11px; background: #f9fafb; color: #374151; font-size: 14px; line-height: 1.6; }
+.transfer-info-box strong { color: #111827; font-size: 15px; }
+.transfer-info-box ul { margin: 8px 0 0; padding-left: 19px; }
+.transfer-info-box li + li { margin-top: 5px; }
+.transfer-card-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 17px 30px; border-top: 1px solid #e5e7eb; background: #fff; }
+.transfer-card-footer button:disabled { cursor: not-allowed; opacity: .5; }
+.transfer-card-message { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 13px; line-height: 1.45; }
+.transfer-card-message[hidden] { display: none; }
+.transfer-card-message.success { border: 1px solid #bbf7d0; background: #f0fdf4; color: #166534; }
+.transfer-card-message.error { border: 1px solid #fecaca; background: #fef2f2; color: #991b1b; }
+.transfer-card-message button { border: 0; background: transparent; color: inherit; font-size: 20px; line-height: 1; cursor: pointer; }
+body.transfer-card-open { overflow: hidden; }
+@media (max-width: 560px) { .transfer-card-header, .transfer-card-body { padding-right: 18px; padding-left: 18px; } .transfer-card-footer { padding-right: 18px; padding-left: 18px; } .transfer-steps { flex-wrap: wrap; justify-content: flex-start; } }
+.transfer-card .primary-button { background: #111827; color: #fff; }
+.transfer-card .primary-button:hover { background: #000; }
+.transfer-card .secondary-button { border: 1px solid #9ca3af; background: #fff; color: #111827; }
+.transfer-card .secondary-button:hover { background: #f3f4f6; }
+@media (max-width: 560px) { .selected-institution-info { grid-template-columns: 1fr; } .transfer-steps { gap: 10px 16px; } }
+.transfer-panel { margin-top: 24px; padding: 24px; }
+.transfer-panel h2 { margin: 0 0 16px; color: #172033; }
+.transfer-list { display: grid; gap: 14px; color: #64748b; }
+.transfer-request { border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; background: #fff; color: #334155; }
+.transfer-request p { margin: 10px 0 0; line-height: 1.5; }
+.transfer-request-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.transfer-request-heading > div { display: grid; gap: 4px; }
+.transfer-request-heading strong { color: #0f172a; font-size: 16px; }
+.transfer-request-heading span { color: #64748b; font-size: 13px; }
+.transfer-status { border-radius: 999px; padding: 5px 10px; font-size: 11px !important; font-weight: 700; letter-spacing: .04em; }
+.transfer-status-pending { background: #fef3c7; color: #92400e !important; }
+.transfer-status-accepted { background: #dcfce7; color: #166534 !important; }
+.transfer-status-rejected, .transfer-status-cancelled { background: #fee2e2; color: #991b1b !important; }
+.transfer-actions { display: flex; gap: 10px; margin-top: 16px; }
+.transfer-footnote { color: #475569; font-size: 13px; }
+@media (max-width: 640px) { .transfer-panel { padding: 16px; } .transfer-request-heading { flex-direction: column; } }
 .page-header {
     display: flex;
     justify-content: space-between;
@@ -1157,10 +1239,258 @@ hr{
 
     background: #f8fafc;
 }
-.student-view-summary,.student-view-summary-info{
+.student-view-summary {
     display: flex;
-    gap: 10px;
+    gap: 18px;
     align-items: center;
+    padding: 24px;
+    margin: 0 -20px 18px;
+    background: linear-gradient(135deg, #eef2ff, #f8fafc);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.student-view-summary-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex: 1;
+}
+
+.student-view-summary-info h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 25px;
+}
+
+.student-view-summary-info p {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.student-view-avatar {
+    width: 76px;
+    height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 76px;
+    overflow: hidden;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #3730a3, #6366f1);
+    color: #fff;
+    font-size: 27px;
+    font-weight: 800;
+    box-shadow: 0 8px 20px rgba(79, 70, 229, .25);
+}
+
+.student-view-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Refined student profile layout */
+.student-view-modal-container {
+    width: min(860px, 100%);
+    padding: 0;
+    overflow: hidden;
+    background: #f6f8fb;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    box-shadow: 0 28px 80px rgba(17, 24, 39, .28);
+}
+
+.student-view-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.student-view-footer {
+    flex: 0 0 auto;
+}
+
+.student-view-header {
+    padding: 24px 34px;
+    background: #fff;
+}
+
+.student-view-header h2 {
+    color: #172033;
+    font-size: 25px;
+    letter-spacing: -.02em;
+}
+
+.student-view-header p {
+    margin: 4px 0 0;
+    color: #718096;
+    font-size: 15px;
+}
+
+.student-view-content {
+    padding: 26px 34px 32px;
+    background: #f6f8fb;
+}
+
+.student-view-content > hr {
+    display: none;
+}
+
+.student-view-summary {
+    margin: 0 0 20px;
+    padding: 25px 28px;
+    border: 1px solid #e1e5eb;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 5px 18px rgba(17, 24, 39, .055);
+}
+
+.student-view-summary-info {
+    align-items: center;
+}
+
+.student-view-summary-info h2 {
+    font-size: 29px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+}
+
+.student-view-summary-info p {
+    margin-top: 7px;
+    color: #596579;
+    font-size: 15px;
+}
+
+.student-view-avatar {
+    width: 86px;
+    height: 86px;
+    flex-basis: 86px;
+    border-radius: 15px;
+    background: #edf2f7;
+    color: #2d4a72;
+    font-size: 30px;
+    box-shadow: none;
+}
+
+.student-info-section {
+    margin: 0 0 20px;
+    padding: 23px 25px 26px;
+    border: 1px solid #e1e5eb;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 5px 18px rgba(17, 24, 39, .045);
+}
+
+.student-info-section > hr {
+    height: 1px;
+    margin: 17px 0 23px;
+    border: 0;
+    background: #edf0f4;
+}
+
+.student-section-title {
+    align-items: center;
+    gap: 12px;
+}
+
+.student-section-title .section-number {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #243b5a;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.student-section-title h3 {
+    margin: 0;
+    color: #172033;
+    font-size: 19px;
+    font-weight: 700;
+}
+
+.student-section-title p {
+    margin: 4px 0 0;
+    color: #687589;
+    font-size: 14px;
+}
+
+.student-info-grid {
+    gap: 24px 54px;
+}
+
+.student-info-item span {
+    color: #707d91;
+    font-size: 12px;
+    letter-spacing: .08em;
+}
+
+.student-info-item strong {
+    color: #1f2937;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.student-view-footer {
+    padding: 18px 34px;
+    background: #fff;
+}
+
+.student-view-footer .secondary-button,
+.student-view-footer .primary-button {
+    min-width: 132px;
+    min-height: 44px;
+    border-radius: 9px;
+    font-size: 15px;
+}
+
+.student-view-footer .primary-button:last-child {
+    background: #243b5a;
+}
+
+@media (max-width: 700px) {
+    .student-view-header,
+    .student-view-content,
+    .student-view-footer {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .student-view-summary {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .student-view-summary-info {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .student-view-summary-info h2 {
+        font-size: 24px;
+    }
+
+    .student-info-section {
+        padding: 18px 17px 20px;
+    }
+
+    .student-info-grid {
+        gap: 18px 20px;
+    }
+
+    .student-view-summary {
+        padding: 19px;
+    }
 }
 
 .student-loading-spinner {

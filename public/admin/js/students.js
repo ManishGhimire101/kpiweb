@@ -3,15 +3,40 @@ let selectedStudentId = null;
 let selectedStudentNewStatus = null;
 let resetStudentPasswordUserId = null;
 
+async function requestStudentTransfer(studentId) {
+  if (typeof openStudentTransferCard === "function") openStudentTransferCard(studentId);
+}
+
 // =====================================================
 // PAGE LOAD
 // =====================================================
 function initializeStudents() {
   loadStudents();
+  document.getElementById("downloadStudentsButton")?.addEventListener("click", downloadStudents);
   initializeStudentFilters();
   initializeStudentViewModal();
   initializeStudentStatusModal();
   initializeStudentResetPasswordModal();
+}
+
+async function downloadStudents() {
+  try {
+    const response = await fetch("/api/admin/students/download", {
+      headers: { Authorization: `Bearer ${getAdminToken()}` },
+    });
+    if (response.status === 401) return adminLogout();
+    if (!response.ok) throw new Error("Failed to download student data.");
+    const blob = await response.blob();
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "students.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  } catch (error) {
+    alert(error.message);
+  }
 }
 
 function filterStudents() {
@@ -68,9 +93,13 @@ async function viewStudent(id) {
 
     // Store ID for Edit button
     const editButton = document.getElementById("editStudentFromViewButton");
+    const downloadButton = document.getElementById("downloadStudentPdfButton");
 
     if (editButton) {
       editButton.dataset.studentId = id;
+    }
+    if (downloadButton) {
+      downloadButton.dataset.studentId = id;
     }
   } catch (error) {
     console.error("Student view error:", error);
@@ -96,6 +125,17 @@ function populateStudentView(student) {
 
   const fullName =
     `${student.firstName || ""} ${student.lastName || ""}`.trim();
+
+  const photo = document.getElementById("viewStudentPhoto");
+  if (photo) {
+    if (student.photo) {
+      photo.innerHTML = `<img src="${escapeHtml(student.photo)}" alt="${escapeHtml(fullName)}">`;
+      photo.classList.add("has-photo");
+    } else {
+      photo.textContent = fullName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "S";
+      photo.classList.remove("has-photo");
+    }
+  }
 
   document.getElementById("viewStudentName").textContent = fullName || "-";
 
@@ -192,6 +232,7 @@ function initializeStudentViewModal() {
   const overlay = document.getElementById("studentViewModalOverlay");
 
   const editButton = document.getElementById("editStudentFromViewButton");
+  const downloadButton = document.getElementById("downloadStudentPdfButton");
 
   function closeModal() {
     if (modal) {
@@ -222,6 +263,33 @@ function initializeStudentViewModal() {
       editStudent(studentId);
     });
   }
+
+  if (downloadButton) {
+    downloadButton.addEventListener("click", async () => {
+      const studentId = downloadButton.dataset.studentId;
+      if (!studentId) return;
+      try {
+        const response = await fetch(`/api/admin/students/${studentId}/pdf`, {
+          headers: { Authorization: `Bearer ${getAdminToken()}` },
+        });
+        if (response.status === 401) return adminLogout();
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.message || `PDF download failed (${response.status}).`);
+        }
+        const blob = await response.blob();
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${studentId}-profile.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+  }
 }
 function formatDate(value) {
   if (!value) {
@@ -249,10 +317,6 @@ function formatDateTime(value) {
   }
 
   return date.toLocaleString();
-}
-
-function editStudent(id) {
-  // later
 }
 
 // =====================================================
@@ -405,6 +469,8 @@ function renderStudents(students) {
 
                        ${statusButton}
 
+                       <button class="action-button" type="button" onclick="requestStudentTransfer(${profile.id})">Transfer</button>
+
                        <button
                              class="action-button"
                             onclick="openStudentResetPasswordModal(
@@ -477,7 +543,34 @@ function filterStudents() {
 // =====================================================
 
 function editStudent(id) {
-  window.location.href = `/admin/students/${id}/edit`;
+  fetch(`/api/admin/students/${id}`, { headers: { Authorization: `Bearer ${getAdminToken()}` } })
+    .then((response) => response.json().then((result) => ({ response, result })))
+    .then(({ response, result }) => {
+      if (!response.ok) throw new Error(result.message || "Failed to load student");
+      const student = result.data;
+      const viewModal = document.getElementById("studentViewModal");
+      if (viewModal) viewModal.style.display = "none";
+      openAdmissionModal();
+      editingStudentId = student.id;
+      document.getElementById("admissionModalTitle").textContent = "Edit Student";
+      document.getElementById("studentFirstName").value = student.firstName || "";
+      document.getElementById("studentLastName").value = student.lastName || "";
+      document.getElementById("studentDob").value = student.dob ? student.dob.slice(0, 10) : "";
+      document.getElementById("studentGender").value = student.gender || "";
+      document.getElementById("studentPhone").value = student.phone || "";
+      document.getElementById("studentAddress").value = student.address || "";
+      document.getElementById("admissionDate").value = student.admissionDate ? student.admissionDate.slice(0, 10) : "";
+      document.getElementById("studentStatus").value = student.status || "ACTIVE";
+      const parent = student.parentStudents?.[0]?.parent || {};
+      document.getElementById("parentFirstName").value = parent.firstName || "";
+      document.getElementById("parentLastName").value = parent.lastName || "";
+      document.getElementById("parentEmail").value = parent.user?.email || "";
+      document.getElementById("parentPhone").value = parent.phone || "";
+      document.getElementById("parentAddress").value = parent.address || "";
+      document.getElementById("parentOccupation").value = parent.occupation || "";
+      document.getElementById("parentRelationship").value = student.parentStudents?.[0]?.relationship || "";
+    })
+    .catch((error) => alert(error.message));
 }
 
 // =====================================================

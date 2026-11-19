@@ -1,4 +1,5 @@
 let admissionModalInitialized = false;
+let editingStudentId = null;
 
 
 // =====================================================
@@ -50,6 +51,11 @@ function initializeAdmissionModal() {
 
 
     admissionModalInitialized = true;
+
+    loadAdmissionPrograms();
+    document.getElementById("admissionProgram")?.addEventListener("change", (event) => {
+        populateAdmissionCourses(event.target.value);
+    });
 
 
     openButton.addEventListener(
@@ -104,6 +110,36 @@ function initializeAdmissionModal() {
 // OPEN MODAL
 // =====================================================
 
+let admissionPrograms = [];
+
+async function loadAdmissionPrograms() {
+    const programSelect = document.getElementById("admissionProgram");
+    if (!programSelect) return;
+    try {
+        const response = await fetch("/api/admin/fees/catalog", { headers: { Authorization: `Bearer ${getAdminToken()}` } });
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || "Unable to load programs");
+        admissionPrograms = result.data.programs || [];
+        programSelect.innerHTML = '<option value="">No program selected</option>' + admissionPrograms.map((program) => `<option value="${program.id}">${escapeAdmissionText(program.name)}</option>`).join("");
+    } catch (error) {
+        console.error("Admission program list failed:", error);
+    }
+}
+
+function populateAdmissionCourses(programId, selectedCourseId = "") {
+    const courseSelect = document.getElementById("admissionCourse");
+    if (!courseSelect) return;
+    const program = admissionPrograms.find((item) => String(item.id) === String(programId));
+    const courses = program?.courses || [];
+    courseSelect.innerHTML = '<option value="">No course selected</option>' + courses.map((course) => `<option value="${course.id}">${escapeAdmissionText(course.title)}</option>`).join("");
+    courseSelect.disabled = !program;
+    courseSelect.value = String(selectedCourseId || "");
+}
+
+function escapeAdmissionText(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
+}
+
 function openAdmissionModal() {
 
     const modal =
@@ -117,6 +153,8 @@ function openAdmissionModal() {
 
 
     modal.style.display = "block";
+    editingStudentId = null;
+    document.getElementById("admissionModalTitle").textContent = "New Admission";
 
     document.body.style.overflow =
         "hidden";
@@ -173,6 +211,10 @@ function closeAdmissionModal() {
     if (form) {
         form.reset();
     }
+
+    editingStudentId = null;
+    const title = document.getElementById("admissionModalTitle");
+    if (title) title.textContent = "New Admission";
 
 
     const error =
@@ -272,7 +314,11 @@ async function submitAdmission(event) {
                 status:
                     document.getElementById(
                         "studentStatus"
-                    ).value
+                    ).value,
+
+                programId: document.getElementById("admissionProgram").value || null,
+
+                courseId: document.getElementById("admissionCourse").value || null
             },
 
 
@@ -317,22 +363,25 @@ async function submitAdmission(event) {
         };
 
 
+        const formData = new FormData();
+        formData.append("student", JSON.stringify(payload.student));
+        formData.append("parent", JSON.stringify(payload.parent));
+        const photo = document.getElementById("studentPhoto")?.files[0];
+        if (photo) formData.append("studentPhoto", photo);
+
+        const isEditing = Boolean(editingStudentId);
         const response =
             await fetch(
-                "/api/admin/students/admission",
+                isEditing ? `/api/admin/students/${editingStudentId}` : "/api/admin/students/admission",
                 {
-                    method: "POST",
+                    method: isEditing ? "PUT" : "POST",
 
-                    headers: {
-                        "Content-Type":
-                            "application/json",
+                    headers: isEditing ? {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    } : { "Authorization": `Bearer ${token}` },
 
-                        "Authorization":
-                            `Bearer ${token}`
-                    },
-
-                    body:
-                        JSON.stringify(payload)
+                    body: isEditing ? JSON.stringify({ ...payload.student, accountStatus: true }) : formData
                 }
             );
 

@@ -39,7 +39,27 @@
     window.location.href = "/login";
   };
 
+  Portal.tenantBase = () => {
+    const match = window.location.pathname.match(/^\/tenant\/[^/]+/);
+    return match ? match[0] : "";
+  };
+
+  Portal.withTenant = (path) => {
+    const base = Portal.tenantBase();
+    if (!base || !path.startsWith("/")) return path;
+    if (
+      path === "/login" ||
+      path === "/change-password" ||
+      path === "/forgot-password" ||
+      path.startsWith("/api/")
+    ) {
+      return `${base}${path}`;
+    }
+    return path;
+  };
+
   Portal.api = async (path, options = {}) => {
+    path = Portal.withTenant(path);
     const headers = {};
     const token = Portal.token();
 
@@ -114,6 +134,10 @@
 
   const BADGES = {
     PENDING: ["warn", "Pending"],
+    DUE: ["warn", "Due"],
+    PARTIAL: ["warn", "Partially paid"],
+    PAID: ["ok", "Paid"],
+    OVERDUE: ["bad", "Overdue"],
     OVERDUE: ["bad", "Overdue"],
     SUBMITTED: ["info", "Submitted"],
     REVIEWED: ["ok", "Reviewed"],

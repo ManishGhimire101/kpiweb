@@ -10,6 +10,9 @@
     <button type="button" class="primary-button" id="openAdmissionButton">
       + New Admission
     </button>
+    <button type="button" class="secondary-button" id="downloadStudentsButton">
+      Download Student Data
+    </button>
   </div>
 
   <!-- Filters -->
@@ -65,6 +68,7 @@
     </div>
   </div>
 </section>
+<div id="studentTransferCardMount"></div>
 <!-- =====================================================
      NEW ADMISSION MODAL
 ===================================================== -->
@@ -77,7 +81,7 @@
 
     <div class="admission-modal-header">
       <div>
-        <h2>New Admission</h2>
+        <h2 id="admissionModalTitle">New Admission</h2>
 
         <p>Register a new student and parent</p>
       </div>
@@ -132,6 +136,12 @@
                 name="studentLastName"
                 placeholder="Enter last name"
               />
+            </div>
+
+            <div class="form-group">
+              <label for="studentPhoto">Student Photo</label>
+              <input type="file" id="studentPhoto" name="studentPhoto" accept="image/jpeg,image/png,image/webp" />
+              <small>JPG, PNG or WEBP, maximum 5MB.</small>
             </div>
 
             <div class="form-group">
@@ -190,6 +200,14 @@
                 rows="3"
                 placeholder="Enter student's address"
               ></textarea>
+            </div>
+            <div class="form-group">
+              <label for="admissionProgram">Program / class</label>
+              <select id="admissionProgram" name="programId"><option value="">No program selected</option></select>
+            </div>
+            <div class="form-group">
+              <label for="admissionCourse">Course</label>
+              <select id="admissionCourse" name="courseId" disabled><option value="">Select a program first</option></select>
             </div>
           </div>
         </div>
@@ -391,13 +409,13 @@
             ================================================= -->
 
       <div class="student-view-summary">
-        <div class="section-number" >1</div>
+        <div class="student-view-avatar" id="viewStudentPhoto">S</div>
 
         <div class="student-view-summary-info">
-          <h2 id="viewStudentName">-</h2>
-
-          <p id="viewStudentCode">-</p>
-
+          <div>
+            <h2 id="viewStudentName">-</h2>
+            <p id="viewStudentCode">-</p>
+          </div>
           <span id="viewStudentStatus" class="status-badge"> - </span>
         </div>
       </div><hr>
@@ -588,6 +606,14 @@
         id="editStudentFromViewButton"
       >
         Edit Student
+      </button>
+
+      <button
+        type="button"
+        class="primary-button"
+        id="downloadStudentPdfButton"
+      >
+        Download PDF
       </button>
     </div>
   </div>

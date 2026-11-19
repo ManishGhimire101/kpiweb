@@ -26,6 +26,7 @@ router.get("/", (req, res) => {
             phone: institution.phone,
             email: institution.email,
             website: institution.website,
+            mapEmbedUrl: institution.mapEmbedUrl,
           }
         : null,
     institutionError:

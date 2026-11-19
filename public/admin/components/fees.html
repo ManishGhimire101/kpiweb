@@ -1,0 +1,77 @@
+<section class="fees-page">
+  <div class="page-header"><div><h1>Fees &amp; Billing</h1><p>Set up class- or program-based fee plans, issue bills, and record payments.</p></div></div>
+  <nav class="fees-tabs" aria-label="Fee management sections">
+    <a href="/admin/fees" data-page="fees">Fee plans &amp; bills</a>
+    <a href="/admin/fees/payments" data-page="fee-payments">Payments &amp; receipts</a>
+    <a href="/admin/fees/settings" data-page="fee-settings">Payment settings</a>
+  </nav>
+  <div class="fees-grid">
+    <article class="students-card fees-card fee-settings-card" data-fees-section="settings">
+      <div class="fee-settings-heading">
+        <span class="fee-settings-icon" aria-hidden="true">↗</span>
+        <div><p class="fee-eyebrow">GETTING PAID</p><h2>Payment &amp; receipt settings</h2><p class="fee-settings-intro">Choose how families can pay and what details appear on their bills.</p></div>
+      </div>
+      <form id="feeSettingsForm" class="fee-form">
+        <label class="fee-toggle-row"><span><strong>Show payment details on bills</strong><small>Families can see your bank instructions on their bills.</small></span><input name="enabled" type="checkbox" role="switch"></label>
+        <fieldset class="fee-settings-group"><legend>Institution details</legend>
+          <label>Institution or merchant name<input name="merchantName" maxlength="150" placeholder="e.g. Sunrise Academy"></label>
+          <label>Payment contact phone<input name="merchantPhone" maxlength="50" placeholder="e.g. +977 98…"></label>
+        </fieldset>
+        <fieldset class="fee-settings-group"><legend>Bank transfer details</legend>
+          <div class="fee-form-row"><label>Bank name<input name="bankName" maxlength="150" placeholder="Bank name"></label><label>Account holder<input name="bankAccountName" maxlength="150" placeholder="Name on account"></label></div>
+          <label>Account number<input name="bankAccountNumber" maxlength="80" placeholder="Bank account number"></label>
+        </fieldset>
+        <fieldset class="fee-settings-group"><legend>Khalti online payments</legend>
+          <label>Secret key<input name="khaltiSecretKey" type="password" autocomplete="new-password" placeholder="Enter a key to add or replace it"></label>
+          <p class="fee-security-note"><strong>Keep your key private.</strong> It is encrypted before storage and never shown after saving. The server must have <code>FEE_SETTINGS_ENCRYPTION_KEY</code> configured.</p>
+          <p id="khaltiKeyStatus" class="muted"></p>
+          <label class="fee-remove-key"><input name="clearKhaltiSecret" type="checkbox"> Remove saved Khalti key</label>
+        </fieldset>
+        <div class="fee-settings-actions"><button class="primary-button" type="submit">Save payment settings</button><p id="feeSettingsMessage" class="muted" role="status"></p></div>
+      </form>
+    </article>
+    <article class="students-card fees-card" data-fees-section="plans">
+      <h2>Create fee plan</h2>
+      <form id="feePlanForm" class="fee-form">
+        <label>Plan name<input name="name" required maxlength="120" placeholder="e.g. Annual tuition and services"></label>
+        <label>Apply plan to<select name="targetType"><option value="PROGRAM">Program / course</option><option value="CLASS">Class</option></select></label>
+        <div class="fee-form-row fee-target-program"><label>Program<select name="programId"></select></label><label>Course (optional)<select name="courseId"><option value="">All courses</option></select></label></div>
+        <label class="fee-target-class" hidden>Class<select name="classId" disabled><option value="">Select class</option></select></label>
+        <label>Billing cycle<select name="cycle"><option value="TERM">Academic term</option><option value="MONTHLY">Monthly</option><option value="QUARTERLY">Quarterly</option><option value="SEMI_ANNUAL">Semi-annual</option></select></label>
+        <div class="fee-items-head"><strong>Charge headings</strong><button type="button" class="secondary-button" id="addFeeItem">+ Add charge</button></div>
+        <div id="feePlanItems"></div>
+        <button class="primary-button" type="submit">Save fee plan</button>
+        <p id="feePlanMessage" class="muted"></p>
+      </form>
+    </article>
+    <article class="students-card fees-card" data-fees-section="plans">
+      <h2>Assign students to program/course</h2>
+      <form id="studentProgramForm" class="fee-form">
+        <label>Student<select name="studentId" required></select></label>
+        <label>Program<select name="programId" required></select></label>
+        <label>Course<select name="courseId"><option value="">No course / all courses</option></select></label>
+        <button class="primary-button" type="submit">Save assignment</button>
+        <p id="studentProgramMessage" class="muted"></p>
+      </form>
+    </article>
+  </div>
+  <article class="students-card fees-card" data-fees-section="plans">
+    <h2>Saved fee plans</h2>
+    <div class="table-container"><table><thead><tr><th>Plan</th><th>Applies to</th><th>Cycle</th><th>Charges</th><th>Status</th><th></th></tr></thead><tbody id="feePlansBody"><tr><td colspan="6">Loading…</td></tr></tbody></table></div>
+  </article>
+  <article class="students-card fees-card" data-fees-section="plans">
+    <h2>Issue bills</h2>
+    <form id="issueFeeForm" class="fee-issue-form">
+      <label>Plan<select name="planId" required></select></label>
+      <label>Academic year<input name="academicYear" required placeholder="2026/2027"></label>
+      <label>Term / billing period<input name="period" required placeholder="Term 1 or 2026-11"></label>
+      <label>Due date<input name="dueDate" type="date"></label>
+      <button class="primary-button" type="submit">Issue bills to matching students</button>
+    </form>
+    <p id="issueFeeMessage" class="muted"></p>
+  </article>
+  <article class="students-card fees-card" data-fees-section="payments">
+    <div class="fees-title-row"><h2>Issued bills</h2><button type="button" class="secondary-button" id="refreshFeeBills">Refresh</button></div>
+    <div class="table-container"><table><thead><tr><th>Student</th><th>Bill / Period</th><th>Total</th><th>Paid</th><th>Balance</th><th>Record payment</th><th>Bill</th></tr></thead><tbody id="feeBillsBody"><tr><td colspan="7">Loading…</td></tr></tbody></table></div>
+  </article>
+</section>
