@@ -1,0 +1,41 @@
+# Dependencies
+node_modules
+
+# Git
+.git
+.gitignore
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist
+build
+*.log
+
+# OS files
+.DS_Store
+
+# Prisma
+prisma/dev.db
+.prisma/
+
+# Storage
+storage/
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Test
+coverage
+.nyc_output
+
+# Misc
+*.tmp
+*.temp
+Thumbs.db

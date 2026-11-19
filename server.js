@@ -3,6 +3,9 @@ const session = require("express-session");
 const path = require("path");
 require("dotenv").config();
 
+// Use process.cwd() for Docker compatibility (WORKDIR /app)
+const ROOT_DIR = process.cwd();
+
 const prisma = require("./lib/prisma");
 const authenticateToken = require("./middleware/auth.js");
 const requireSuperAdmin = require("./middleware/superadmin.js");
@@ -51,7 +54,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const landingPage = (file) => (req, res, next) =>
-  req.tenant.kind === "root" ? res.sendFile(path.join(__dirname, "landing", file)) : next();
+  req.tenant.kind === "root" ? res.sendFile(path.join(ROOT_DIR, "landing", file)) : next();
 
 app.get("/", landingPage("index.html"));
 app.get("/about", landingPage("about.html"));
@@ -59,8 +62,8 @@ app.get("/register", landingPage("register.html"));
 app.get("/lms", (req, res) => res.redirect(301, "/"));
 app.get("/lms/about", (req, res) => res.redirect(301, "/about"));
 
-app.use("/landing", express.static(path.join(__dirname, "landing")));
-app.use(express.static(path.join(__dirname, "public")));
+app.use("/landing", express.static(path.join(ROOT_DIR, "landing")));
+app.use(express.static(path.join(ROOT_DIR, "public")));
 
 app.use(
   session({
@@ -144,7 +147,7 @@ app.use("/api/admin", adminLmsRouter);
 app.use("/api/admin", adminRouter);
 
 const page = (...segments) => (req, res) =>
-  res.sendFile(path.join(__dirname, "public", ...segments));
+  res.sendFile(path.join(ROOT_DIR, "public", ...segments));
 
 const institutionOnly = requireHost("institution");
 
@@ -193,7 +196,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 async function startServer() {
   try {
