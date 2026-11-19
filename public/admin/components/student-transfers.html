@@ -1,0 +1,22 @@
+<section class="students-page">
+  <div class="page-header">
+    <div><h1>Student Transfers</h1><p>Request student transfers and review incoming requests.</p></div>
+  </div>
+  <div class="transfer-info-box transfer-page-info"><strong>Transfer process</strong><ul><li>The receiving institution reviews and accepts or rejects each request.</li><li>On acceptance, the student's existing login is retained and the receiving school assigns a class.</li><li>Parent/guardian profiles and credentials are copied to destination logins; source logins remain for any siblings.</li><li>Previous academic history stays preserved in the transfer archive.</li></ul></div>
+  <div id="transferActionNotice" class="transfer-card-message" role="status" hidden></div>
+  <div class="students-card transfer-panel">
+    <div class="transfer-panel-heading"><div><h2>Start a student transfer</h2><p>Find a student by name or student code, then send a transfer request to another institution.</p></div></div>
+    <label class="transfer-field-label" for="transferStudentSearch">Search your students</label>
+    <input id="transferStudentSearch" class="transfer-institution-search" type="search" placeholder="Search by student name or code…" autocomplete="off">
+    <div id="transferStudentResults" class="transfer-student-results" role="listbox" aria-label="Student search results"></div>
+  </div>
+  <div class="students-card transfer-panel">
+    <h2>Incoming Requests</h2>
+    <div id="incomingTransfers" class="transfer-list">Loading incoming requests…</div>
+  </div>
+  <div class="students-card transfer-panel">
+    <h2>Outgoing Requests</h2>
+    <div id="outgoingTransfers" class="transfer-list">Loading outgoing requests…</div>
+  </div>
+  <div id="transferNotice" class="transfer-notice" role="status" hidden></div>
+</section>

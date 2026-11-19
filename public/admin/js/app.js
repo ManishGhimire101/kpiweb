@@ -197,7 +197,14 @@ async function loadPage(page) {
             </div>
         `;
 
-    const response = await fetch(`/admin/components/${page}.html`);
+    const componentPage = ["fee-payments", "fee-settings"].includes(page) ? "fees" : page;
+    if (page === "subscription") {
+      const html = await (await fetch("/admin/components/subscription.html")).text();
+      pageContent.innerHTML = html;
+      updateActiveSidebar(page);
+      return;
+    }
+    const response = await fetch(`/admin/components/${componentPage}.html`);
 
     if (!response.ok) {
       throw new Error(`Failed to load ${page}`);
@@ -210,6 +217,9 @@ async function loadPage(page) {
     updateActiveSidebar(page);
 
     if (page === "students") {
+      if (typeof initializeStudentTransferCard === "function") {
+        initializeStudentTransferCard();
+      }
       if (typeof initializeStudents === "function") {
         initializeStudents();
       }
@@ -217,6 +227,12 @@ async function loadPage(page) {
       if (typeof initializeAdmissionModal === "function") {
         initializeAdmissionModal();
       }
+    }
+    if (page === "student-transfers" && typeof initializeStudentTransfers === "function") {
+      initializeStudentTransfers();
+    }
+    if (["fees", "fee-payments", "fee-settings"].includes(page) && typeof initializeFees === "function") {
+      initializeFees(page);
     }
     if (page === "parents" && typeof initializeParents === "function") {
       initializeParents();
@@ -280,10 +296,13 @@ function getPageFromURL() {
     "/admin/dashboard": "dashboard",
 
     "/admin/students": "students",
+    "/admin/student-transfers": "student-transfers",
+    "/admin/subscription": "subscription",
     "/admin/teachers": "teachers",
     "/admin/classes": "classes",
     "/admin/website": "website",
     "/admin/parents": "parents",
+    "/admin/fees": "fees",
     "/admin/programs": "programs",
     "/admin/courses": "courses",
     "/admin/notices": "notices",
@@ -291,6 +310,8 @@ function getPageFromURL() {
     "/admin/settings": "settings",
   };
 
+  if (path.endsWith("/admin/fees/payments")) return "fee-payments";
+  if (path.endsWith("/admin/fees/settings")) return "fee-settings";
   return pages[path] || "dashboard";
 }
 
@@ -304,6 +325,15 @@ function loadInitialPage() {
 
 function initializePageNavigation() {
   document.addEventListener("click", (event) => {
+    const submenuButton = event.target.closest("[data-submenu-toggle]");
+    if (submenuButton) {
+      const submenu = document.getElementById(submenuButton.dataset.submenuToggle);
+      if (submenu) {
+        submenu.hidden = !submenu.hidden;
+        submenuButton.setAttribute("aria-expanded", String(!submenu.hidden));
+      }
+      return;
+    }
     const link = event.target.closest("a[data-page]");
 
     if (!link) {
@@ -357,6 +387,13 @@ function updateActiveSidebar(page) {
       link.classList.remove("active");
     }
   });
+
+  const activeLink = sidebar.querySelector(`a[data-page="${CSS.escape(page)}"]`);
+  const submenu = activeLink?.closest(".sidebar-submenu");
+  if (submenu) {
+    submenu.hidden = false;
+    sidebar.querySelector(`[data-submenu-toggle="${submenu.id}"]`)?.setAttribute("aria-expanded", "true");
+  }
 }
 
 document.addEventListener("DOMContentLoaded", async () => {

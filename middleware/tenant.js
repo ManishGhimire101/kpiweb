@@ -3,7 +3,26 @@ const { resolveTenant } = require("../lib/tenant");
 
 async function tenantMiddleware(req, res, next) {
   try {
-    req.tenant = await resolveTenant(prisma, req.headers.host);
+    const prefixMatch = req.originalUrl.match(/^\/tenant\/([^/?]+)(\/.*)?(?:\?.*)?$/);
+
+    if (prefixMatch) {
+      const subdomain = decodeURIComponent(prefixMatch[1]).toLowerCase();
+      const institution = await prisma.institution.findUnique({
+        where: { subdomain },
+      });
+
+      req.tenant = {
+        kind: "institution",
+        hostname: req.headers.host,
+        port: "",
+        institution,
+      };
+
+      req.url = prefixMatch[2] || "/";
+    } else {
+      req.tenant = await resolveTenant(prisma, req.headers.host);
+    }
+
     next();
   } catch (error) {
     next(error);
@@ -57,8 +76,10 @@ const PORTAL_PREFIXES = [
   "/portal",
   "/uploads",
   "/login",
+  "/forgot-password",
   "/change-password",
   "/api/admin",
+  "/api/fees",
   "/api/teacher",
   "/api/student",
   "/api/parent",
@@ -92,6 +113,10 @@ function hostGuard(req, res, next) {
   const kind = req.tenant.kind;
 
   if (pathname === "/api/health" || pathname === "/api/config") {
+    return next();
+  }
+
+  if (req.originalUrl.startsWith("/tenant/") && kind === "institution") {
     return next();
   }
 

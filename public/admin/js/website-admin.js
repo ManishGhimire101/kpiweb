@@ -61,7 +61,7 @@
   const ICONS = {"profile": "<circle cx=\"12\" cy=\"8\" r=\"3.5\"/><path d=\"M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6\"/>", "home": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"13\" rx=\"2\"/><path d=\"M8 21h8M12 17v4\"/>", "notices": "<path d=\"M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8Z\"/><path d=\"M10 20a2 2 0 0 0 4 0\"/>", "gallary": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><circle cx=\"9\" cy=\"10\" r=\"1.6\"/><path d=\"m21 16-5-5-9 9\"/>", "staff": "<circle cx=\"9\" cy=\"8\" r=\"3.2\"/><path d=\"M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5\"/><circle cx=\"17.5\" cy=\"9\" r=\"2.4\"/><path d=\"M17 14.6c2.4.2 4 1.9 4 4.4\"/>", "about": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 11v5M12 8h.01\"/>", "programs": "<path d=\"M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5Z\"/><path d=\"M4 19a2 2 0 0 1 2-2h13\"/>"};
 
   const SECTIONS = [
-    { id: "profile", label: "Profile & logo", hint: "Logo, contact details and address" },
+    { id: "profile", label: "Profile & logo", hint: "Logo, contact details, address and map" },
     { id: "home", label: "Home slides", hint: "Banner images on the home page", category: "home", noun: "slide", titleLabel: "Headline", detailsLabel: "Caption" },
     { id: "notices", label: "Notices", hint: "Announcements shown on the notice page", category: "notices", noun: "notice", titleLabel: "Title", detailsLabel: "Details" },
     { id: "gallary", label: "Gallery", hint: "Photos shown in the gallery", category: "gallary", noun: "photo", titleLabel: "Title", detailsLabel: "Description" },
@@ -129,6 +129,7 @@
           <div class="lms-field"><label>Website</label><input name="website" value="${esc(p.website || "")}" placeholder="https://"></div>
         </div>
         <div class="lms-field"><label>Address</label><input name="address" value="${esc(p.address || "")}" maxlength="300"></div>
+        <div class="lms-field"><label>Google Maps embed iframe</label><textarea name="mapEmbedUrl" rows="4" placeholder="Paste the full Google Maps &lt;iframe ...&gt; embed code here">${esc(p.mapEmbedUrl || "")}</textarea><div class="lms-muted">In Google Maps, select Share → Embed a map → Copy HTML, then paste the entire iframe code here. This will appear on your About Us page.</div></div>
         <div class="lms-actions"><button class="lms-btn" type="submit">Save profile</button></div>
       </form></div>`;
 
@@ -238,7 +239,8 @@
                   ? p.courses.map((c) => `<span class="lms-chip">${esc(c.title)}${c.isFree ? " (Free)" : ""} <a href="#" data-del-c="${c.id}" style="color:#b91c1c;text-decoration:none">&times;</a></span>`).join("")
                   : '<span class="lms-muted">No courses yet.</span>'
               }</div>
-              <button class="lms-btn small" data-add-c="${p.id}">+ Add course</button></div>`,
+              <button class="lms-btn small" data-add-c="${p.id}">+ Add course</button>
+              <button class="lms-btn small secondary" data-manage-fees>Manage program/course fees</button></div>`,
               )
               .join("")
           : '<div class="lms-empty">No programs yet. Programs and courses appear on your Program page and home page.</div>'
@@ -294,6 +296,10 @@
     body.querySelector("#addProgram").addEventListener("click", () => programForm(null));
     body.querySelectorAll("[data-edit-p]").forEach((b) => b.addEventListener("click", () => programForm(find(b.dataset.editP))));
     body.querySelectorAll("[data-add-c]").forEach((b) => b.addEventListener("click", () => courseForm(b.dataset.addC)));
+    body.querySelectorAll("[data-manage-fees]").forEach((b) => b.addEventListener("click", () => {
+      const link = document.querySelector('[data-page="fees"], [data-view="fees"], a[href*="fees"]');
+      if (link) link.click(); else toast("Open Fees & Billing to create plans for this program or its courses.", "info");
+    }));
 
     body.querySelectorAll("[data-del-p]").forEach((b) =>
       b.addEventListener("click", async () => {

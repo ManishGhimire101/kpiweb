@@ -1,6 +1,22 @@
 function initializeDashboard() {
     loadAdminInformation();
+    initializeDashboardWebsiteLink();
     loadDashboard();
+}
+
+function initializeDashboardWebsiteLink() {
+    const link = document.getElementById("dashboardViewSiteLink");
+    if (!link) return;
+
+    const hostname = window.location.hostname;
+    const rootDomain = hostname.split(".").slice(-2).join(".");
+    const port = window.location.port ? `:${window.location.port}` : "";
+    const user = getAdminUser();
+    const subdomain = user?.institution?.subdomain;
+
+    link.href = subdomain
+        ? `${window.location.protocol}//${subdomain}.${rootDomain}${port}/`
+        : "/";
 }
 
 

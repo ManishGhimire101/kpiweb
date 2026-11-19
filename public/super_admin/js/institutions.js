@@ -324,11 +324,17 @@ function renderInstitutions(list = institutions) {
         <td>
           ${institution.subdomain
             ? `
-              <span class="domain-text">
+              <a
+                class="domain-text"
+                href="${escapeHtml(institution.portalUrl || `http://${institution.subdomain}${portalSuffix}`)}"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Open institution portal in a new tab"
+              >
                 ${escapeHtml(
                   institution.subdomain
                 )}${portalSuffix}
-              </span>
+              </a>
             `
             : "-"
           }
@@ -672,6 +678,11 @@ function openEditInstitutionModal(institution) {
     institution.address || "";
 
   document.getElementById(
+    "institutionMapEmbedUrl"
+  ).value =
+    institution.mapEmbedUrl || "";
+
+  document.getElementById(
     "institutionSubdomain"
   ).value =
     institution.subdomain || "";
@@ -758,6 +769,11 @@ async function saveInstitution(event) {
     address:
       document.getElementById(
         "institutionAddress"
+      ).value.trim(),
+
+    mapEmbedUrl:
+      document.getElementById(
+        "institutionMapEmbedUrl"
       ).value.trim(),
 
     website:

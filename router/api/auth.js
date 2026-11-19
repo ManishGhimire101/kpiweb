@@ -239,4 +239,77 @@ router.post(
   },
 );
 
+router.post(
+  "/forgot-password",
+  requireHost("institution"),
+  async (req, res) => {
+    try {
+      const username = String(req.body?.username || "").trim();
+      const email = String(req.body?.email || "").trim().toLowerCase();
+      const newPassword = String(req.body?.newPassword || "");
+
+      if (!username || !email || !newPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Username, email and new password are required",
+        });
+      }
+
+      if (newPassword.length < 8) {
+        return res.status(400).json({
+          success: false,
+          message: "New password must be at least 8 characters long",
+        });
+      }
+
+      const institution = req.tenant.institution;
+
+      const user = await prisma.user.findUnique({
+        where: { username },
+      });
+
+      const validAccount =
+        user &&
+        user.institutionId === institution.id &&
+        PORTAL_ROLES.includes(user.role) &&
+        user.isActive &&
+        String(user.email || "").trim().toLowerCase() === email;
+
+      if (!validAccount) {
+        return res.status(400).json({
+          success: false,
+          message: "The username and registered email do not match",
+        });
+      }
+
+      if (await bcrypt.compare(newPassword, user.passwordHash)) {
+        return res.status(400).json({
+          success: false,
+          message: "New password must be different from the current password",
+        });
+      }
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash: await bcrypt.hash(newPassword, 12),
+          mustChangePassword: false,
+        },
+      });
+
+      return res.json({
+        success: true,
+        message: "Password reset successfully",
+      });
+    } catch (error) {
+      console.error("Forgot password error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Password reset failed",
+      });
+    }
+  },
+);
+
 module.exports = router;

@@ -334,6 +334,7 @@ router.get(
         phone: i.phone,
         address: i.address,
         website: i.website,
+        mapEmbedUrl: i.mapEmbedUrl,
       },
     });
   }),
@@ -352,18 +353,34 @@ router.put(
     const email = String(req.body.email ?? current.email ?? "").trim();
     const phone = String(req.body.phone ?? current.phone ?? "").trim();
     const website = String(req.body.website ?? current.website ?? "").trim();
+    const mapEmbedInput = String(req.body.mapEmbedUrl ?? current.mapEmbedUrl ?? "").trim();
+    let mapEmbedUrl = mapEmbedInput;
     const address = String(req.body.address ?? current.address ?? "").trim();
     const type = String(req.body.type ?? current.type ?? "").trim();
 
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail("Enter a valid email address");
     if (phone && !/^[0-9+\-\s(),]{6,40}$/.test(phone)) return fail("Enter a valid phone number");
     if (website && !/^https?:\/\/.+\..+/.test(website)) return fail("Website must start with http:// or https://");
+    if (mapEmbedUrl) {
+      try {
+        const iframeMatch = mapEmbedUrl.match(/^\s*<iframe\b[^>]*\bsrc\s*=\s*(["'])(https:\/\/[^"']+)\1[^>]*>\s*<\/iframe>\s*$/i);
+        if (iframeMatch) mapEmbedUrl = iframeMatch[2];
+
+        const url = new URL(mapEmbedUrl);
+        if (url.protocol !== "https:" || !["www.google.com", "maps.google.com"].includes(url.hostname) || !url.pathname.startsWith("/maps/embed")) {
+          return fail("Paste a Google Maps embed URL or the full iframe code from Share → Embed a map");
+        }
+      } catch {
+        return fail("Paste a valid Google Maps embed URL or iframe code");
+      }
+    }
     if (address.length > 300) return fail("Address must be 300 characters or fewer");
 
     const data = {
       email: email || null,
       phone: phone || null,
       website: website || null,
+      mapEmbedUrl: mapEmbedUrl || null,
       address: address || null,
       type: type || null,
     };

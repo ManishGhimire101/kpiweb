@@ -19,6 +19,10 @@ const adminRouter = require("./router/api/admin");
 const adminLmsRouter = require("./router/api/admin_lms.js");
 const contentRouter = require("./router/api/content.js");
 const studentAdminRouter = require("./router/api/students.js");
+const adminTransfersRouter = require("./router/api/admin_transfers.js");
+const adminFeesRouter = require("./router/api/admin_fees.js");
+const adminFeeSettingsRouter = require("./router/api/admin_fee_settings.js");
+const feesRouter = require("./router/api/fees.js");
 const authRouter = require("./router/api/auth.js");
 const configRouter = require("./router/api/config.js");
 const registerRouter = require("./router/api/register.js");
@@ -135,11 +139,15 @@ app.use("/api/auth", authRouter);
 app.use("/api/teacher", teacherRouter);
 app.use("/api/student", studentRouter);
 app.use("/api/parent", parentRouter);
+app.use("/api/fees", feesRouter);
 app.use("/api/files", filesRouter);
 
 app.use("/api/admin/login", requireHost("institution"), loginLimiter);
 app.use("/api/admin/content", requireHost("institution"), contentRouter);
 app.use("/api/admin/students", studentAdminRouter);
+app.use("/api/admin/student-transfers", adminTransfersRouter);
+app.use("/api/admin/fees", adminFeesRouter);
+app.use("/api/admin/fee-settings", adminFeeSettingsRouter);
 app.use("/api/admin", adminLmsRouter);
 app.use("/api/admin", adminRouter);
 
@@ -149,6 +157,8 @@ const page = (...segments) => (req, res) =>
 const institutionOnly = requireHost("institution");
 
 app.get("/login", institutionOnly, page("portal", "login.html"));
+app.get("/forgot-password", institutionOnly, (req, res) => res.redirect(307, "/admin/forget-password"));
+app.get("/admin/forget-password", institutionOnly, page("portal", "forgot-password.html"));
 app.get("/admin/login", institutionOnly, (req, res) => res.redirect("/login"));
 app.get(["/change-password", "/admin/change-password"], institutionOnly, page("portal", "change-password.html"));
 app.get("/teacher", institutionOnly, page("portal", "teacher.html"));
@@ -160,8 +170,13 @@ app.get(
     "/admin",
     "/admin/dashboard",
     "/admin/students",
+    "/admin/student-transfers",
+    "/admin/subscription",
     "/admin/teachers",
     "/admin/parents",
+    "/admin/fees",
+    "/admin/fees/payments",
+    "/admin/fees/settings",
     "/admin/classes",
     "/admin/website",
   ],
@@ -225,5 +240,9 @@ async function startServer() {
 }
 
 startServer();
+
+app.get("/tenant/:subdomain/login", institutionOnly, page("portal", "login.html"));
+app.get("/tenant/:subdomain/forgot-password", institutionOnly, page("portal", "forgot-password.html"));
+app.get("/tenant/:subdomain/admin/forget-password", institutionOnly, page("portal", "forgot-password.html"));
 
 module.exports = app;

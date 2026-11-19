@@ -25,6 +25,7 @@ model Institution {
   phone        String?
   address      String?
   website      String?
+  mapEmbedUrl  String?
   customDomain String? @unique
   subdomain    String? @unique
   themeColor   String  @default("#2563eb")
@@ -47,6 +48,11 @@ model Institution {
   resources  Resource[]
   attendance Attendance[]
   complaints Complaint[]
+  outgoingStudentTransfers StudentTransferRequest[] @relation("TransferSource")
+  incomingStudentTransfers StudentTransferRequest[] @relation("TransferDestination")
+  feePlans FeePlan[]
+  feeBills FeeBill[]
+  feeSettings InstitutionFeeSettings?
 }
 
 model User {
@@ -69,6 +75,8 @@ model User {
   studentProfile StudentProfile?
   teacherProfile TeacherProfile?
   parentProfile  ParentProfile?
+  requestedStudentTransfers StudentTransferRequest[] @relation("TransferRequester")
+  receivedFeePayments FeePayment[] @relation("FeePaymentReceiver")
 }
 
 model AdminProfile {
@@ -95,6 +103,7 @@ model StudentProfile {
   studentCode   String
   firstName     String
   lastName      String?
+  photo         String?
   dob           DateTime?
   gender        String?
   phone         String?
@@ -114,8 +123,36 @@ model StudentProfile {
   submissions    HomeworkSubmission[]
   attendance     Attendance[]
   complaints     Complaint[]
+  transferRequests StudentTransferRequest[]
+  programId     Int?
+  courseId      Int?
+  program       Program?             @relation(fields: [programId], references: [id], onDelete: SetNull)
+  course        Course?              @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  feeBills      FeeBill[]
 
   @@unique([institutionId, studentCode])
+}
+
+model StudentTransferRequest {
+  id                       Int                   @id @default(autoincrement())
+  studentId                Int
+  sourceInstitutionId      Int
+  destinationInstitutionId Int
+  requestedByUserId        Int
+  status                   StudentTransferStatus @default(PENDING)
+  note                     String?
+  responseNote             String?
+  historyArchive           Json?
+  createdAt                DateTime              @default(now())
+  respondedAt              DateTime?
+
+  student                StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  sourceInstitution      Institution    @relation("TransferSource", fields: [sourceInstitutionId], references: [id], onDelete: Cascade)
+  destinationInstitution Institution    @relation("TransferDestination", fields: [destinationInstitutionId], references: [id], onDelete: Cascade)
+  requestedBy            User           @relation("TransferRequester", fields: [requestedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([destinationInstitutionId, status])
+  @@index([sourceInstitutionId, status])
 }
 
 model TeacherProfile {
@@ -194,6 +231,8 @@ model Program {
 
   institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   courses     Course[]
+  students    StudentProfile[]
+  feePlans    FeePlan[]
 }
 
 model Course {
@@ -208,6 +247,92 @@ model Course {
   updatedAt DateTime @updatedAt
 
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  students StudentProfile[]
+}
+
+model FeePlan {
+  id            Int      @id @default(autoincrement())
+  institutionId Int
+  programId     Int?
+  courseId      Int?
+  classId       Int?
+  name          String
+  cycle         String   @default("TERM")
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  program     Program?    @relation(fields: [programId], references: [id], onDelete: Cascade)
+  class       Class?      @relation(fields: [classId], references: [id], onDelete: Cascade)
+  items       FeePlanItem[]
+  bills       FeeBill[]
+
+  @@index([institutionId, programId])
+  @@index([institutionId, classId])
+}
+
+model InstitutionFeeSettings {
+  id                    String   @id @default(cuid())
+  institutionId         Int      @unique
+  enabled               Boolean  @default(false)
+  merchantName          String   @default("")
+  merchantPhone         String   @default("")
+  bankName              String   @default("")
+  bankAccountName       String   @default("")
+  bankAccountNumber     String   @default("")
+  khaltiSecretEncrypted String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+}
+
+model FeePlanItem {
+  id        Int    @id @default(autoincrement())
+  planId    Int
+  heading   String
+  amount    Int
+  plan      FeePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  @@index([planId])
+}
+
+model FeeBill {
+  id            Int      @id @default(autoincrement())
+  institutionId Int
+  studentId     Int
+  planId        Int?
+  title         String
+  academicYear  String
+  period        String
+  lines         Json
+  totalAmount   Int
+  dueDate       DateTime?
+  createdAt     DateTime @default(now())
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  plan        FeePlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  payments    FeePayment[]
+  @@index([institutionId, studentId, createdAt])
+  @@unique([studentId, planId, academicYear, period])
+}
+
+model FeePayment {
+  id                    Int      @id @default(autoincrement())
+  billId                Int
+  amount                Int
+  status                String   @default("PENDING")
+  method                String
+  khaltiPidx            String?  @unique
+  khaltiTransactionId   String?
+  receivedByUserId      Int?
+  paidAt                DateTime?
+  createdAt             DateTime @default(now())
+
+  bill FeeBill @relation(fields: [billId], references: [id], onDelete: Cascade)
+  receivedBy User? @relation("FeePaymentReceiver", fields: [receivedByUserId], references: [id], onDelete: SetNull)
+  @@index([billId, status])
 }
 
 model Upload {
@@ -232,6 +357,13 @@ enum AttendanceStatus {
   EXCUSED
 }
 
+enum StudentTransferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
 model Class {
   id            Int     @id @default(autoincrement())
   institutionId Int
@@ -244,6 +376,7 @@ model Class {
 
   institution Institution      @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   students    StudentProfile[]
+  feePlans    FeePlan[]
   teachers    TeacherClass[]
   homework    Homework[]
   resources   Resource[]

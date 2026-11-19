@@ -30,6 +30,23 @@
             </span>
         </a>
 
+        <a href="/admin/student-transfers" class="sidebar-link" data-page="student-transfers">
+            <span class="sidebar-icon">⇄</span>
+            <span>Student Transfers</span>
+        </a>
+
+        <button type="button" class="sidebar-link sidebar-parent" aria-expanded="false" aria-controls="feesSubmenu" data-submenu-toggle="feesSubmenu">
+            <span class="sidebar-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/><circle cx="16.5" cy="14.5" r="2"/></svg>
+            </span>
+            <span>Fees &amp; Billing</span><span class="sidebar-chevron" aria-hidden="true">⌄</span>
+        </button>
+        <div class="sidebar-submenu" id="feesSubmenu" hidden>
+            <a href="/admin/fees" class="sidebar-sublink" data-page="fees">Fee plans &amp; bills</a>
+            <a href="/admin/fees/payments" class="sidebar-sublink" data-page="fee-payments">Payments &amp; receipts</a>
+            <a href="/admin/fees/settings" class="sidebar-sublink" data-page="fee-settings">Payment settings</a>
+        </div>
+
         <a
             href="/admin/teachers"
             class="sidebar-link"
@@ -94,6 +111,11 @@
         <div class="sidebar-section">
             System
         </div>
+
+        <a href="/admin/subscription" class="sidebar-link" data-page="subscription">
+            <span class="sidebar-icon" aria-hidden="true">♧</span>
+            <span>Subscription</span>
+        </a>
 
         <a
             href="/admin/change-password"

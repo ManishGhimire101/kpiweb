@@ -361,6 +361,14 @@
             .map(([k, v]) => `<p><strong>${k}:</strong> ${escapeHtml(v)}</p>`)
             .join('');
         }
+
+        if (inst.mapEmbedUrl) {
+          const section = document.createElement('section');
+          section.className = 'about-section';
+          section.innerHTML = '<h2><i class="fa-solid fa-map-location-dot"></i> Our Location</h2><div class="map-section"><iframe class="map-iframe" title="Institution location map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div>';
+          section.querySelector('iframe').src = inst.mapEmbedUrl;
+          document.querySelector('main.about-container').appendChild(section);
+        }
       });
     </script>
   </body>
